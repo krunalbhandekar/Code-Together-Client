@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { LOCAL_TOKEN } from "../../constants/auth";
+import { LOCAL_TOKEN } from "../constants/auth";
 
 const token = !!JSON.parse(localStorage.getItem(LOCAL_TOKEN));
 
