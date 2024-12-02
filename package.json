@@ -2,8 +2,10 @@
   "name": "Code-Together-Client",
   "version": "1.0.0",
   "repository": "https://github.com/krunalbhandekar/Code-Together-Client.git",
-   "author": "Krunal Bhandekar",
+  "author": "Krunal Bhandekar",
   "dependencies": {
+    "antd": "^5.22.2",
+    "axios": "^1.7.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.0.1"
