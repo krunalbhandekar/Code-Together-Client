@@ -2,12 +2,18 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, Badge, Dropdown } from "antd";
 import { BellOutlined, LogoutOutlined } from "@ant-design/icons";
-import { LOCAL_TOKEN, LOCAL_USER } from "../constants/auth";
+import {
+  getAuthUserEmail,
+  getAuthUserName,
+  LOCAL_TOKEN,
+  LOCAL_USER,
+} from "../constants/auth";
+import { startCase } from "lodash";
 
 const Navbar = () => {
   const navigate = useNavigate();
 
-  const logout = () => {
+  const onLogout = () => {
     localStorage.removeItem(LOCAL_TOKEN);
     localStorage.removeItem(LOCAL_USER);
     window.location.href = "/login";
@@ -40,12 +46,15 @@ const Navbar = () => {
                   {
                     key: "profile",
                     label: (
-                      <div className="text-sm">
-                        <p className="font-medium">Krunal Bhandekar</p>
-                        <p className="text-xs">krunalbhandekar10@gmail.com</p>
+                      <div className="text-sm cursor-default">
+                        <p className="font-medium">
+                          {getAuthUserName() ?? "User"}
+                        </p>
+                        <p className="text-xs">
+                          {getAuthUserEmail() ?? "Email"}
+                        </p>
                       </div>
                     ),
-                    disabled: true,
                   },
                   {
                     type: "divider",
@@ -54,7 +63,7 @@ const Navbar = () => {
                     key: "logout",
                     label: "Log Out",
                     icon: <LogoutOutlined />,
-                    onClick: logout,
+                    onClick: onLogout,
                   },
                 ],
               }}
@@ -63,7 +72,7 @@ const Navbar = () => {
             >
               <span>
                 <Avatar size="small" className="bg-indigo-500 cursor-pointer">
-                  K
+                  {getAuthUserName() ? startCase(getAuthUserName()[0]) : "U"}
                 </Avatar>
               </span>
             </Dropdown>
