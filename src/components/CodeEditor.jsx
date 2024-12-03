@@ -6,13 +6,16 @@ import axios from "axios";
 import LangIcon from "../utils/LangIcon";
 import { FILE_URL } from "../constants/api";
 import useScreen from "../customHook/useScreen";
+import { getSocket } from "../constants/socket";
 import CODE_EDITOR from "../constants/code-editor";
+import customDebounce from "../utils/customDebounce";
 
 const CodeEditor = () => {
   const { fileId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const isSmallScreen = useScreen();
+  const socket = getSocket();
   const [loading, setLoading] = useState(false);
   const [fileName, setFileName] = useState(null);
   const [code, setCode] = useState(null);
@@ -82,7 +85,14 @@ const CodeEditor = () => {
 
   const handleCodeChange = (newCode) => {
     setCode(newCode);
+    debounceEmit(newCode);
   };
+
+  const debounceEmit = useRef(
+    customDebounce((newCode) => {
+      socket.emit("update-file", { fileId, content: newCode });
+    }, 1500)
+  ).current;
 
   const handleCodeRun = () => {
     setResultLoading(true);
