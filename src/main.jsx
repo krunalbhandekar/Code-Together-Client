@@ -7,11 +7,9 @@ import App from "./app";
 import "./main.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <RTKProvider store={store}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </RTKProvider>
-  </React.StrictMode>
+  <RTKProvider store={store}>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </RTKProvider>
 );

@@ -5,6 +5,7 @@
   "author": "Krunal Bhandekar",
   "dependencies": {
     "@ant-design/icons": "^5.5.2",
+    "@monaco-editor/react": "^4.6.0",
     "@reduxjs/toolkit": "^2.4.0",
     "antd": "^5.22.2",
     "axios": "^1.7.8",

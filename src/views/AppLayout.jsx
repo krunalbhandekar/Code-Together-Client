@@ -11,7 +11,7 @@ const AppLayout = () => {
           <Outlet />
         </div>
       </main>
-      <footer className="bg-indigo-300 border-t border-gray-300 text-center py-2 text-white">
+      <footer className="bg-black text-center py-2 text-white">
         <p>
           &copy; {new Date().getFullYear()} Code Together. All rights reserved.
         </p>
