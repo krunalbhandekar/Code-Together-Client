@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { LOCAL_TOKEN, LOCAL_USER } from "../../constants/auth";
 import axios from "axios";
+import { LOCAL_TOKEN, LOCAL_USER } from "../../constants/auth";
+import { disconnectSocket } from "../../constants/socket";
 import { onLogin } from "./action";
 
 const token = JSON.parse(localStorage.getItem(LOCAL_TOKEN));
@@ -24,6 +25,7 @@ const authSlice = createSlice({
       state.token = null;
       state.user = null;
       state.error = null;
+      disconnectSocket();
       axios.defaults.headers.common.Authorization = null;
       window.location.href = "/login";
     },

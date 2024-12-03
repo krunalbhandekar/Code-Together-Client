@@ -8,11 +8,13 @@ import Signup from "./views/auth/Signup";
 import AppLayout from "./views/AppLayout";
 import CodeEditor from "./components/CodeEditor";
 import ProtectedRoute from "./hoc/ProtectedRoute";
+import { initializeSocket } from "./constants/socket";
 
 const App = () => {
-  const { isAuthenticated, token } = useSelector((state) => state.auth);
+  const { isAuthenticated, token, user } = useSelector((state) => state.auth);
 
-  if (token !== null && isAuthenticated) {
+  if (token !== null && isAuthenticated && user) {
+    initializeSocket(user?._id);
     axios.defaults.headers.common.Authorization = token;
   }
 
