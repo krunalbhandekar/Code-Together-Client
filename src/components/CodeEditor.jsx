@@ -97,11 +97,24 @@ const CodeEditor = () => {
   const handleCodeRun = () => {
     setResultLoading(true);
     setResult([]);
-    setResultLoading(false);
+    socket.emit("execute-code", { language, content: code });
   };
 
   useEffect(() => {
     onLoadFile();
+
+    const handleExecutionResult = ({ result }) => {
+      setResult(result);
+      setResultLoading(false);
+    };
+
+    //Socket listeners
+    socket.on("execution-result", handleExecutionResult);
+
+    //Cleanup/unmount on route change
+    return () => {
+      socket.off("execution-result", handleExecutionResult);
+    };
   }, [fileId, location]);
 
   const editorStyle = !isSmallScreen
