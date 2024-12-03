@@ -1,32 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { message } from "antd";
-import axios from "axios";
-import { USER_URL } from "../../constants/api";
-import { LOCAL_TOKEN, LOCAL_USER } from "../../constants/auth";
+import { onLogin } from "../../rtk/auth/action";
 
 const Login = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: null, password: null });
-  const [loading, setLoading] = useState(false);
+  const { loading, error } = useSelector((state) => state.auth);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await axios.post(`${USER_URL}/login`, form);
-      if (res.data.status === "success") {
-        localStorage.setItem(LOCAL_TOKEN, JSON.stringify(res.data.token));
-        localStorage.setItem(LOCAL_USER, JSON.stringify(res.data.user));
-        window.location.href = "/";
-      } else {
-        message.error(res.data.error);
-      }
-    } catch (err) {
-      message.error(err?.message);
-    }
-    setLoading(false);
+    dispatch(onLogin(form));
+    setForm({ email: "", password: "" });
   };
+
+  useEffect(() => {
+    if (error) {
+      message.error(error);
+    }
+  }, [error]);
 
   return (
     <div className="h-screen flex justify-center items-center bg-cover bg-center">

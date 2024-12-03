@@ -1,19 +1,16 @@
 import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
+import { useSelector } from "react-redux";
 import axios from "axios";
 import Home from "./components/Home";
 import Login from "./views/auth/Login";
 import Signup from "./views/auth/Signup";
 import AppLayout from "./views/AppLayout";
-import useAuth from "./customHook/useAuth";
-import { LOCAL_TOKEN } from "./constants/auth";
 import CodeEditor from "./components/CodeEditor";
 import ProtectedRoute from "./hoc/ProtectedRoute";
 
-const token = JSON.parse(localStorage.getItem(LOCAL_TOKEN));
-
 const App = () => {
-  const isAuthenticated = useAuth();
+  const { isAuthenticated, token } = useSelector((state) => state.auth);
 
   if (token !== null && isAuthenticated) {
     axios.defaults.headers.common.Authorization = token;

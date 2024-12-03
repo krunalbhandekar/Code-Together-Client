@@ -2,21 +2,17 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, Badge, Dropdown } from "antd";
 import { BellOutlined, LogoutOutlined } from "@ant-design/icons";
-import {
-  getAuthUserEmail,
-  getAuthUserName,
-  LOCAL_TOKEN,
-  LOCAL_USER,
-} from "../constants/auth";
 import { startCase } from "lodash";
+import { useDispatch, useSelector } from "react-redux";
+import { onLogout } from "../rtk/auth/slice";
 
 const Navbar = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
 
-  const onLogout = () => {
-    localStorage.removeItem(LOCAL_TOKEN);
-    localStorage.removeItem(LOCAL_USER);
-    window.location.href = "/login";
+  const handleLogout = () => {
+    dispatch(onLogout());
   };
 
   return (
@@ -47,12 +43,8 @@ const Navbar = () => {
                     key: "profile",
                     label: (
                       <div className="text-sm cursor-default">
-                        <p className="font-medium">
-                          {getAuthUserName() ?? "User"}
-                        </p>
-                        <p className="text-xs">
-                          {getAuthUserEmail() ?? "Email"}
-                        </p>
+                        <p className="font-medium">{user?.name || "User"}</p>
+                        <p className="text-xs">{user?.email || "Email"}</p>
                       </div>
                     ),
                   },
@@ -63,7 +55,7 @@ const Navbar = () => {
                     key: "logout",
                     label: "Log Out",
                     icon: <LogoutOutlined />,
-                    onClick: onLogout,
+                    onClick: handleLogout,
                   },
                 ],
               }}
@@ -72,7 +64,7 @@ const Navbar = () => {
             >
               <span>
                 <Avatar size="small" className="bg-indigo-500 cursor-pointer">
-                  {getAuthUserName() ? startCase(getAuthUserName()[0]) : "U"}
+                  {user?.name ? startCase(user.name[0]) : "U"}
                 </Avatar>
               </span>
             </Dropdown>

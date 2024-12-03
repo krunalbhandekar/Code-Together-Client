@@ -1,13 +1,44 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { message } from "antd";
 import FileList from "./FileList";
+import { onAddMyFile, onLoadMyFiles } from "../rtk/myFiles/action";
+import { onLoadCollabFiles } from "../rtk/collabFiles/action";
 
 const Home = () => {
+  const dispatch = useDispatch();
   const [form, setForm] = useState({ name: "", language: "" });
-  const [loading, setLoading] = useState(false);
-  const myFiles = [];
-  const collabFiles = [];
 
-  const handleCreateFile = () => {};
+  const {
+    myFiles,
+    loading: myFilesLoading,
+    error: myFilesError,
+  } = useSelector((state) => state.myFiles);
+  const {
+    collabFiles,
+    loading: collabFilesLoading,
+    error: collabFilesError,
+  } = useSelector((state) => state.collabFiles);
+
+  const loading = myFilesLoading || collabFilesLoading;
+  const error = myFilesError || collabFilesError;
+
+  const handleCreateFile = (e) => {
+    e.preventDefault();
+    dispatch(onAddMyFile(form));
+    setForm({ name: "", language: "" });
+  };
+
+  useEffect(() => {
+    if (error) {
+      message.error(error);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    dispatch(onLoadMyFiles());
+    dispatch(onLoadCollabFiles());
+  }, []);
 
   return (
     <div>
@@ -54,7 +85,7 @@ const Home = () => {
       </div>
 
       {myFiles && myFiles.length > 0 && (
-        <FileList title="My Files" list={myFiles} deleteBtn={true} />
+        <FileList title="My Files" list={myFiles} deleteBtn />
       )}
 
       {collabFiles && collabFiles.length > 0 && (
