@@ -5,7 +5,10 @@ let socket = null;
 
 export const initializeSocket = (userId) => {
   if (userId && !socket) {
-    socket = io(BASE_URL, { query: { userId: userId } });
+    socket = io(BASE_URL, {
+      query: { userId: userId },
+      transports: ["websocket", "polling"],
+    });
   }
 };
 
