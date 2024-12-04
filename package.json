@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "repository": "https://github.com/krunalbhandekar/Code-Together-Client.git",
   "author": "Krunal Bhandekar",
+  "license": "ISC",
   "dependencies": {
     "@ant-design/icons": "^5.5.2",
     "@monaco-editor/react": "^4.6.0",
