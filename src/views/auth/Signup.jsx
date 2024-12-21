@@ -1,5 +1,8 @@
+import { message } from "antd";
+import axios from "axios";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { USER_URL } from "../../constants/api";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -14,6 +17,36 @@ const Signup = () => {
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    try {
+      if (!isOtpSent) {
+        const res = await axios.post(`${USER_URL}/register`, {
+          name: form.name,
+          email: form.email,
+          password: form.password,
+        });
+        if (res.data.status === "success") {
+          setIsOtpSent(true);
+          message.success(`Otp has been sent to ${form.email}`);
+        } else {
+          message.error(res.data.error);
+        }
+      } else {
+        const res = await axios.post(`${USER_URL}/verify-otp`, {
+          email: form.email,
+          otp: form.otp,
+        });
+        if (res.data.status === "success") {
+          message.success("Signup Successful");
+          navigate("/login");
+        } else {
+          message.error(res.data.error);
+        }
+      }
+    } catch (err) {
+      message.error(err?.message);
+    }
+    setLoading(false);
   };
 
   return (
