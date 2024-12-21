@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 import { onLogin } from "./action";
+import { disconnectSocket } from "../../constants/socket";
 
 const LS_TOKEN = "ct-token";
 const LS_USER = "ct-user";
@@ -26,6 +27,7 @@ const authSlice = createSlice({
       state.token = null;
       state.user = null;
       state.error = null;
+      disconnectSocket();
       axios.defaults.headers.common.Authorization = null;
       window.location.href = "/login";
     },

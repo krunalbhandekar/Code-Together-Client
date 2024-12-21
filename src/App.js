@@ -7,11 +7,13 @@ import Home from "./components/Home";
 import CodeEditor from "./components/CodeEditor";
 import { useSelector } from "react-redux";
 import axios from "axios";
+import { socketInit } from "./constants/socket";
 
 function App() {
   const { isAuthenticated, token, user } = useSelector((state) => state.auth);
 
   if (token !== null && isAuthenticated && user) {
+    socketInit(user?._id);
     axios.defaults.headers.common.Authorization = token;
   }
 
