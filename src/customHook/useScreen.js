@@ -14,9 +14,9 @@ const useScreen = () => {
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-
-    return isSmallScreen;
   }, []);
+
+  return isSmallScreen;
 };
 
 export default useScreen;
