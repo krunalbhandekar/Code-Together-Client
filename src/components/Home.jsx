@@ -7,7 +7,7 @@ import { message } from "antd";
 
 const Home = () => {
   const dispatch = useDispatch();
-  const [form, setForm] = useState({ name: "", language: "" });
+  const [form, setForm] = useState({ name: "" });
   const {
     myFiles,
     loading: myFilesLoading,
@@ -25,7 +25,7 @@ const Home = () => {
   const handleCreateFile = (e) => {
     e.preventDefault();
     dispatch(onAddMyFile(form));
-    setForm({ name: "", language: "" });
+    setForm({ name: "" });
   };
 
   useEffect(() => {
@@ -53,7 +53,7 @@ const Home = () => {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               className="flex-1 min-w-[200px] p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
             />
-            <select
+            {/* <select
               value={form.language}
               required
               onChange={(e) => setForm({ ...form, language: e.target.value })}
@@ -64,7 +64,7 @@ const Home = () => {
               </option>
               <option value="javascript">JavaScript</option>
               <option value="python">Python</option>
-            </select>
+            </select> */}
             <button
               disabled={loading}
               className="relative flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"

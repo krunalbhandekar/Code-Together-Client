@@ -1,13 +1,21 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { message } from "antd";
+import { message, Tooltip } from "antd";
 import axios from "axios";
 import { FILE_URL } from "../constants/api";
 import useScreen from "../customHook/useScreen";
 import LangIcon from "../utils/LangIcon";
-import { SunOutlined, MoonFilled } from "@ant-design/icons";
+import {
+  SunOutlined,
+  MoonFilled,
+  UsergroupAddOutlined,
+  PlusOutlined,
+  MinusOutlined,
+} from "@ant-design/icons";
 import MonacoEditor from "@monaco-editor/react";
 import customDebounce from "../utils/customDebounce";
+import { getSocket } from "../constants/socket";
+import Collaborators from "./Collaborators";
 
 const lightTheme = "vs-light";
 const darkTheme = "vs-dark";
@@ -18,6 +26,7 @@ const CodeEditor = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isSmallScreen = useScreen();
+  const socket = getSocket();
   const [loading, setLoading] = useState(false);
   const [fileName, setFileName] = useState(null);
   const [content, setContent] = useState(null);
@@ -25,11 +34,12 @@ const CodeEditor = () => {
   const [admin, setAdmin] = useState(null);
   const [editorWidth, setEditorWidth] = useState(70); // Editor occupies 70% initially
   const [fontSize, setFontSize] = useState(minFontSize);
-  const [theme, setTheme] = useState(darkTheme);
+  const [theme, setTheme] = useState(lightTheme);
   const [result, setResult] = useState([]);
   const [resultLoading, setResultLoading] = useState(false);
   const isDragging = useRef(null);
   const debounceTimer = useRef(null);
+  const [collaboratorOpen, setCollaboratorOpen] = useState(false);
 
   const onLoadFile = async () => {
     setLoading(true);
@@ -59,8 +69,8 @@ const CodeEditor = () => {
 
   const debounceEmit = useRef(
     customDebounce((newCode) => {
-      console.log(newCode);
-    }, 1500)
+      socket.emit("update-file", { fileId, content: newCode });
+    }, 1200)
   ).current;
 
   const debounce = (callback, delay) => {
@@ -100,10 +110,54 @@ const CodeEditor = () => {
   const handleCodeRun = () => {
     setResultLoading(true);
     setResult([]);
+    socket.emit("execute-code", { language, content });
   };
 
   useEffect(() => {
     onLoadFile();
+
+    if (location.pathname.includes(fileId)) {
+      socket.emit("file-open", { fileId });
+    }
+
+    const handleFileUpdated = ({ id, content }) => {
+      if (id === fileId) {
+        setContent(content);
+      }
+    };
+
+    const handleExecutionResult = ({ result }) => {
+      setResult((prev) => [...prev, result]);
+      setResultLoading(false);
+    };
+
+    const handleNewUserJoined = ({ result }) => {
+      message.success(result);
+    };
+
+    const handleUserLeft = ({ result }) => {
+      message.error(result);
+    };
+
+    const handleFileError = ({ result }) => {
+      message.error(result);
+    };
+
+    socket.on("file-updated", handleFileUpdated);
+    socket.on("execution-result", handleExecutionResult);
+    socket.on("new-user-joined", handleNewUserJoined);
+    socket.on("user-left", handleUserLeft);
+    socket.on("file-error", handleFileError);
+
+    return () => {
+      socket.emit("file-close", { fileId });
+
+      socket.off("file-updated", handleFileUpdated);
+      socket.off("execution-result", handleExecutionResult);
+      socket.off("new-user-joined", handleNewUserJoined);
+      socket.off("user-left", handleUserLeft);
+      socket.off("file-error", handleFileError);
+    };
   }, [fileId, location]);
 
   const editorStyle = !isSmallScreen
@@ -144,16 +198,28 @@ const CodeEditor = () => {
           : "bg-gray-200 hover:bg-gray-300"
       }`}
               >
-                -
+                <MinusOutlined style={{ fontSize: 12 }} />
               </button>
               <button
                 onClick={() => setFontSize((prev) => prev + 5)}
                 className="flex items-center justify-center w-6 h-6 bg-gray-200 hover:bg-gray-300 rounded-full text-xl font-bold shadow-md transition-transform transform active:scale-90"
               >
-                +
+                <PlusOutlined style={{ fontSize: 12 }} />
               </button>
             </div>
           </div>
+        )}
+
+        {!isSmallScreen && (
+          <Tooltip title="Collaborators">
+            <button
+              size="small"
+              onClick={() => setCollaboratorOpen(true)}
+              className="bg-red-500 px-2 rounded-lg text-white hover:bg-red-600"
+            >
+              <UsergroupAddOutlined />
+            </button>
+          </Tooltip>
         )}
       </div>
 
@@ -218,6 +284,12 @@ const CodeEditor = () => {
           </div>
         </div>
       </div>
+      <Collaborators
+        open={collaboratorOpen}
+        close={() => setCollaboratorOpen(false)}
+        admin={admin}
+        fileId={fileId}
+      />
     </div>
   );
 };

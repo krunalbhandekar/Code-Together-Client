@@ -16,7 +16,7 @@ export const onLoadMyFiles = createAsyncThunk(
 
 export const onAddMyFile = createAsyncThunk(
   "myFiles/onAddMyFile",
-  async ({ name, language }) => {
+  async ({ name, language = "javascript" }) => {
     try {
       const res = await axios.post(FILE_URL, { name, language });
       return res.data;
