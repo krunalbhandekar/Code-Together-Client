@@ -6,9 +6,14 @@ import ProtectedRoute from "./hoc/ProtectedRoute";
 import Home from "./components/Home";
 import CodeEditor from "./components/CodeEditor";
 import { useSelector } from "react-redux";
+import axios from "axios";
 
 function App() {
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, token, user } = useSelector((state) => state.auth);
+
+  if (token !== null && isAuthenticated && user) {
+    axios.defaults.headers.common.Authorization = token;
+  }
 
   return (
     <Routes>
