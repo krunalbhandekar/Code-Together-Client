@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { message, Tooltip } from "antd";
+import { FloatButton, message, Tooltip } from "antd";
 import axios from "axios";
 import { FILE_URL } from "../constants/api";
 import useScreen from "../customHook/useScreen";
@@ -16,6 +16,7 @@ import MonacoEditor from "@monaco-editor/react";
 import customDebounce from "../utils/customDebounce";
 import { getSocket } from "../constants/socket";
 import Collaborators from "./Collaborators";
+import AskGemini from "./AskGemini";
 
 const lightTheme = "vs-light";
 const darkTheme = "vs-dark";
@@ -40,6 +41,7 @@ const CodeEditor = () => {
   const isDragging = useRef(null);
   const debounceTimer = useRef(null);
   const [collaboratorOpen, setCollaboratorOpen] = useState(false);
+  const [askGeminiOpen, setAskGeminiOpen] = useState(false);
 
   const onLoadFile = async () => {
     setLoading(true);
@@ -284,10 +286,28 @@ const CodeEditor = () => {
           </div>
         </div>
       </div>
+      {!askGeminiOpen && (
+        <Tooltip title="Ask to AI">
+          <FloatButton
+            type="primary"
+            style={{
+              insetInlineEnd: 60,
+              bottom: 45,
+            }}
+            description="Ask?"
+            onClick={() => setAskGeminiOpen(!askGeminiOpen)}
+          />
+        </Tooltip>
+      )}
       <Collaborators
         open={collaboratorOpen}
         close={() => setCollaboratorOpen(false)}
         admin={admin}
+        fileId={fileId}
+      />
+      <AskGemini
+        open={askGeminiOpen}
+        close={() => setAskGeminiOpen(false)}
         fileId={fileId}
       />
     </div>
