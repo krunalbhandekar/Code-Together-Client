@@ -3,9 +3,12 @@ import Login from "./views/auth/Login";
 import Signup from "./views/auth/Signup";
 import AppLayout from "./views/app/AppLayout";
 import ProtectedRoute from "./hoc/ProtectedRoute";
+import Home from "./components/Home";
+import CodeEditor from "./components/CodeEditor";
+import { useSelector } from "react-redux";
 
 function App() {
-  const isAuthenticated = true;
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
   return (
     <Routes>
@@ -38,7 +41,10 @@ function App() {
             elseComp={<Navigate to="/login" />}
           />
         }
-      />
+      >
+        <Route path="/" element={<Home />} />
+        <Route path="/:fileId" element={<CodeEditor />} />
+      </Route>
     </Routes>
   );
 }

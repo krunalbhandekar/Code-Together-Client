@@ -1,14 +1,26 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { onLogin } from "../../rtk/auth/action";
+import { message } from "antd";
 
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [form, setForm] = useState({ email: null, password: null });
-  const [loading, setLoading] = useState(false);
+  const { loading, error } = useSelector((state) => state.auth);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    dispatch(onLogin(form));
+    setForm({ email: "", password: "" });
   };
+
+  useEffect(() => {
+    if (error) {
+      message.error(error);
+    }
+  }, [error]);
 
   return (
     <div className="h-screen flex justify-center items-center bg-cover bg-center">

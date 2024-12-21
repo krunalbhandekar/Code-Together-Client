@@ -3,12 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { BellOutlined, LogoutOutlined } from "@ant-design/icons";
 import { Avatar, Badge, Dropdown } from "antd";
 import { startCase } from "lodash";
+import { useDispatch, useSelector } from "react-redux";
+import { onLogout } from "../rtk/auth/slice";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const user = { name: "Krunal", email: "krunalbhandekar10@gmail.com" };
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
 
-  const handleLogout = () => {};
+  const handleLogout = () => {
+    dispatch(onLogout());
+  };
 
   return (
     <header className="bg-white shadow">
