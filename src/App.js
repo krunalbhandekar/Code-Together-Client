@@ -5,7 +5,7 @@ import AppLayout from "./views/app/AppLayout";
 import ProtectedRoute from "./hoc/ProtectedRoute";
 
 function App() {
-  const isAuthenticated = false;
+  const isAuthenticated = true;
 
   return (
     <Routes>
