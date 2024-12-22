@@ -2,7 +2,6 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import Feedback from "../../components/Feedback";
 
 const AppLayout = () => {
   return (
@@ -13,7 +12,6 @@ const AppLayout = () => {
           <Outlet />
         </div>
       </main>
-      <Feedback />
       <Footer />
     </div>
   );

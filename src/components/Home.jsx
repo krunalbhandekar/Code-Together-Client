@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import FileList from "./FileList";
-import { onAddMyFile, onLoadMyFiles } from "../rtk/myFiles/action";
-import { onLoadCollabFiles } from "../rtk/collabFiles/action";
+import { onAddMyFile } from "../rtk/myFiles/action";
 import { message } from "antd";
 import { getSocket } from "../constants/socket";
 
 const Home = () => {
   const dispatch = useDispatch();
   const socket = getSocket();
-  const [form, setForm] = useState({ name: "" });
+  const [form, setForm] = useState({ name: "", language: "javascript" });
   const {
     myFiles,
     loading: myFilesLoading,
@@ -27,19 +26,12 @@ const Home = () => {
   const handleCreateFile = (e) => {
     e.preventDefault();
     dispatch(onAddMyFile(form));
-    setForm({ name: "" });
-  };
-
-  useEffect(() => {
-    if (error) {
+    if (!error) {
+      setForm({ name: "", language: "javascript" });
+    } else {
       message.error(error);
     }
-  }, [error]);
-
-  useEffect(() => {
-    dispatch(onLoadMyFiles());
-    dispatch(onLoadCollabFiles());
-  }, []);
+  };
 
   useEffect(() => {
     socket.on("collaborator-update", ({ message: msg }) => {
@@ -65,7 +57,7 @@ const Home = () => {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               className="flex-1 min-w-[200px] p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
             />
-            {/* <select
+            <select
               value={form.language}
               required
               onChange={(e) => setForm({ ...form, language: e.target.value })}
@@ -74,9 +66,13 @@ const Home = () => {
               <option value="" disabled selected>
                 Select Language
               </option>
-              <option value="javascript">JavaScript</option>
-              <option value="python">Python</option>
-            </select> */}
+              <option selected value="javascript">
+                JavaScript
+              </option>
+              <option disabled value="python">
+                Python
+              </option>
+            </select>
             <button
               disabled={loading}
               className="relative flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
