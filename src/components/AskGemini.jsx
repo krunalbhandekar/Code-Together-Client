@@ -44,8 +44,22 @@ const AskGemini = ({ open, close, fileId }) => {
       message.error(err?.message);
     }
     setLoading(false);
-    setResponse([]);
     setPrompt("");
+  };
+
+  const handleResponse = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.delete(`${GEMINI_URL}/${fileId}`);
+      if (res.data.status === "error") {
+        message.error(res.data.error);
+      } else {
+        setResponse([]);
+      }
+    } catch (err) {
+      message.error(err?.message);
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -66,6 +80,16 @@ const AskGemini = ({ open, close, fileId }) => {
   return (
     <Drawer
       title="Code Together AI"
+      extra={
+        response.length > 0 && (
+          <button
+            onClick={handleResponse}
+            className="px-4 py-1 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-opacity-75 transition ease-in-out duration-150"
+          >
+            Clear Response
+          </button>
+        )
+      }
       loading={loading}
       open={open}
       placement="right"
