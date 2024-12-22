@@ -21,7 +21,10 @@ const Collaborators = ({
     try {
       const res = await axios.get(INVITATION_URL, {
         headers: {
-          "X-API-Filters": JSON.stringify({ file: [fileId] }),
+          "X-API-Filters": JSON.stringify({
+            file: [fileId],
+            status: ["Accepted"],
+          }),
         },
       });
       if (res.data.status === "success") {
@@ -112,17 +115,6 @@ const Collaborators = ({
               name={e?.reveiver?.name ?? e?.receiverEmail}
               subTitle={e?.reveiver?.email ?? e?.receiverEmail}
             />
-            <p
-              className={`text-white px-4 rounded-lg ${
-                e?.status === "Accepted"
-                  ? "bg-green-500"
-                  : e?.status === "Pending"
-                  ? "bg-orange-500"
-                  : "bg-red-500"
-              }`}
-            >
-              {e?.status === "Accepted" ? "Joined" : e?.status}
-            </p>
           </div>
         ))}
       </div>
