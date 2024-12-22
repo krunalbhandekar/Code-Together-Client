@@ -65,7 +65,7 @@ const AskGemini = ({ open, close, fileId }) => {
 
   return (
     <Drawer
-      title="AI"
+      title="Code Together AI"
       loading={loading}
       open={open}
       placement="right"

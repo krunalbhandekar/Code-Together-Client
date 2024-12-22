@@ -55,11 +55,11 @@ const CodeEditor = () => {
         setAdmin(file.createdBy);
       } else {
         message.error(res.data.error);
-        navigate("/");
+        navigate("/app");
       }
     } catch (err) {
       message.error(err?.message);
-      navigate("/");
+      navigate("/app");
     }
     setLoading(false);
   };

@@ -4,9 +4,11 @@ import FileList from "./FileList";
 import { onAddMyFile, onLoadMyFiles } from "../rtk/myFiles/action";
 import { onLoadCollabFiles } from "../rtk/collabFiles/action";
 import { message } from "antd";
+import { getSocket } from "../constants/socket";
 
 const Home = () => {
   const dispatch = useDispatch();
+  const socket = getSocket();
   const [form, setForm] = useState({ name: "" });
   const {
     myFiles,
@@ -37,6 +39,16 @@ const Home = () => {
   useEffect(() => {
     dispatch(onLoadMyFiles());
     dispatch(onLoadCollabFiles());
+  }, []);
+
+  useEffect(() => {
+    socket.on("collaborator-update", ({ message: msg }) => {
+      message.success(msg);
+    });
+
+    socket.on("invitation-update", ({ message: msg }) => {
+      message.success(msg);
+    });
   }, []);
 
   return (

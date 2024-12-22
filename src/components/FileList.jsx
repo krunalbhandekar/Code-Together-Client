@@ -9,7 +9,7 @@ const FileList = (props) => {
   const navigate = useNavigate();
 
   const handleFileOpen = (fileId) => {
-    navigate(`/${fileId}`);
+    navigate(`/app/${fileId}`);
   };
 
   const handleFileDelete = (fileName, fileId) => {

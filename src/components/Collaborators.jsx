@@ -73,6 +73,7 @@ const Collaborators = ({
       footer={null}
       closable={true}
       maskClosable={false}
+      loading={inviteLoading}
     >
       {user?._id === admin?._id && (
         <form className="mb-5 shadow p-3 rounded-lg" onSubmit={sendInvitation}>

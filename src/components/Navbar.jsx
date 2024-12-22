@@ -24,7 +24,7 @@ const Navbar = () => {
             clipPath: "polygon(0 0, 100% 20%, 100% 100%, 0 80%)",
             backgroundColor: "rgb(167 243 208)",
           }}
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/app")}
         >
           Code Together
         </h1>

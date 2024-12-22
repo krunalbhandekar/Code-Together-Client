@@ -7,28 +7,15 @@ import Home from "./components/Home";
 import CodeEditor from "./components/CodeEditor";
 import { useSelector } from "react-redux";
 import axios from "axios";
-import { getSocket, socketInit } from "./constants/socket";
-import { useEffect } from "react";
-import { message } from "antd";
+import { socketInit } from "./constants/socket";
 
 function App() {
   const { isAuthenticated, token, user } = useSelector((state) => state.auth);
-  const socket = getSocket();
 
   if (token !== null && isAuthenticated && user) {
     socketInit(user?._id);
     axios.defaults.headers.common.Authorization = token;
   }
-
-  useEffect(() => {
-    socket.on("collaborator-update", ({ message: msg }) => {
-      message.success(msg);
-    });
-
-    socket.on("invitation-update", ({ message: msg }) => {
-      message.success(msg);
-    });
-  }, []);
 
   return (
     <Routes>
@@ -37,7 +24,7 @@ function App() {
         element={
           <ProtectedRoute
             cond={isAuthenticated}
-            ifComp={<Navigate to="/" />}
+            ifComp={<Navigate to="/app" />}
             elseComp={<Login />}
           />
         }
@@ -47,13 +34,13 @@ function App() {
         element={
           <ProtectedRoute
             cond={isAuthenticated}
-            ifComp={<Navigate to="/" />}
+            ifComp={<Navigate to="/app" />}
             elseComp={<Signup />}
           />
         }
       />
       <Route
-        path="/"
+        path="/app"
         element={
           <ProtectedRoute
             cond={isAuthenticated}
@@ -62,8 +49,8 @@ function App() {
           />
         }
       >
-        <Route path="/" element={<Home />} />
-        <Route path="/:fileId" element={<CodeEditor />} />
+        <Route index element={<Home />} />
+        <Route path=":fileId" element={<CodeEditor />} />
       </Route>
     </Routes>
   );
