@@ -1,15 +1,37 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BellOutlined, LogoutOutlined } from "@ant-design/icons";
-import { Avatar, Badge, Dropdown } from "antd";
+import {
+  BellOutlined,
+  LogoutOutlined,
+  SolutionOutlined,
+} from "@ant-design/icons";
+import { Avatar, Badge, Dropdown, message, Modal, Tooltip } from "antd";
 import { startCase } from "lodash";
 import { useDispatch, useSelector } from "react-redux";
 import { onLogout } from "../rtk/auth/slice";
+import { onAddMyFeedback } from "../rtk/feedbacks/action";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { loading: feedbackLoading, error } = useSelector(
+    (state) => state.feedbacks
+  );
+  const [addFeedback, setAddFeedback] = useState(false);
+  const [feedbackContent, setFeedbackContent] = useState("");
+
+  const onAddFeedback = async (e) => {
+    e.preventDefault();
+    dispatch(onAddMyFeedback({ content: feedbackContent }));
+    if (!error) {
+      message.success("Feedback Added");
+      setFeedbackContent("");
+      setAddFeedback(false);
+    } else {
+      message.error(error);
+    }
+  };
 
   const handleLogout = () => {
     dispatch(onLogout());
@@ -24,12 +46,20 @@ const Navbar = () => {
             clipPath: "polygon(0 0, 100% 20%, 100% 100%, 0 80%)",
             backgroundColor: "rgb(167 243 208)",
           }}
-          onClick={() => navigate("/app")}
+          onClick={() => navigate("/")}
         >
           Code Together
         </h1>
 
         <ul className="flex items-center space-x-4">
+          <li>
+            <Tooltip title="Add Feedback">
+              <SolutionOutlined
+                onClick={() => setAddFeedback(true)}
+                className="cursor-pointer"
+              />
+            </Tooltip>
+          </li>
           <li>
             <Badge dot>
               <BellOutlined className="cursor-pointer" />
@@ -71,6 +101,41 @@ const Navbar = () => {
           </li>
         </ul>
       </div>
+      <Modal
+        title="Add Feedback"
+        open={addFeedback}
+        onCancel={() => {
+          setAddFeedback(false);
+          setFeedbackContent("");
+        }}
+        footer={null}
+        closable={true}
+        maskClosable={false}
+        loading={feedbackLoading}
+      >
+        <form className="mb-5 shadow p-3 rounded-lg" onSubmit={onAddFeedback}>
+          <div className="flex flex-wrap justify-between items-center mt-4 gap-4">
+            <textarea
+              value={feedbackContent}
+              placeholder="Add your feedback"
+              required
+              onChange={(e) => setFeedbackContent(e.target.value)}
+              className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600"
+            />
+            <button
+              disabled={feedbackLoading}
+              className="relative flex items-center justify-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 desabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {feedbackLoading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-6 h-6 border-4 border-t-4 border-transparent border-white rounded-full animate-spin"></div>
+                </div>
+              )}
+              Add
+            </button>
+          </div>
+        </form>
+      </Modal>
     </header>
   );
 };
