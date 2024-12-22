@@ -48,7 +48,7 @@ const authSlice = createSlice({
           localStorage.setItem(LS_USER, JSON.stringify(user));
           state.isAuthenticated = true;
           axios.defaults.headers.common.Authorization = token;
-          window.location.href = "/";
+          window.location.href = "/app";
         }
         state.loading = false;
       })
