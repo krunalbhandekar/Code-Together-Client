@@ -84,7 +84,7 @@ const AskGemini = ({ open, close, fileId }) => {
         response.length > 0 && (
           <button
             onClick={handleResponse}
-            className="px-4 py-1 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-opacity-75 transition ease-in-out duration-150"
+            className="text-sm px-4 py-1 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-opacity-75 transition ease-in-out duration-150"
           >
             Clear Response
           </button>
