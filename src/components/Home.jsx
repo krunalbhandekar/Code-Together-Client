@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import FileList from "./FileList";
 import { onAddMyFile } from "../rtk/myFiles/action";
@@ -30,6 +30,12 @@ const Home = () => {
       message.error(error);
     }
   };
+
+  useEffect(() => {
+    if (error) {
+      message.error(error);
+    }
+  }, [error]);
 
   return (
     <div>

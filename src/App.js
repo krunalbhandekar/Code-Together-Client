@@ -13,6 +13,8 @@ import { useEffect } from "react";
 import { onLoadMyFiles } from "./rtk/myFiles/action";
 import { onLoadCollabFiles } from "./rtk/collabFiles/action";
 import { onLoadFeedbacks } from "./rtk/feedbacks/action";
+import { onLogout } from "./rtk/auth/slice";
+import { message } from "antd";
 
 function App() {
   const dispatch = useDispatch();
@@ -30,6 +32,26 @@ function App() {
     }
     dispatch(onLoadFeedbacks());
   }, [isAuthenticated]);
+
+  axios.interceptors.response.use(
+    (response) => {
+      if (response.data.status === "unauthorized") {
+        message.error("Session expired. Logging out...");
+        dispatch(onLogout());
+      }
+      return response;
+    },
+    (error) => {
+      if (error.response && error.response.status === 401) {
+        message.error("Session expired. Logging out...");
+        setTimeout(() => {
+          dispatch(onLogout());
+        }, 2000);
+      } else {
+        return Promise.reject(error);
+      }
+    }
+  );
 
   return (
     <Routes>

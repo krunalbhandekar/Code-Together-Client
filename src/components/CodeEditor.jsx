@@ -21,6 +21,7 @@ import AskGemini from "./AskGemini";
 const lightTheme = "vs-light";
 const darkTheme = "vs-dark";
 const minFontSize = 10;
+const editorWidth = 70;
 
 const CodeEditor = () => {
   const { fileId } = useParams();
@@ -33,13 +34,10 @@ const CodeEditor = () => {
   const [content, setContent] = useState(null);
   const [language, setLanguage] = useState(null);
   const [admin, setAdmin] = useState(null);
-  const [editorWidth, setEditorWidth] = useState(70); // Editor occupies 70% initially
   const [fontSize, setFontSize] = useState(minFontSize);
   const [theme, setTheme] = useState(lightTheme);
   const [result, setResult] = useState([]);
   const [resultLoading, setResultLoading] = useState(false);
-  const isDragging = useRef(null);
-  const debounceTimer = useRef(null);
   const [collaboratorOpen, setCollaboratorOpen] = useState(false);
   const [askGeminiOpen, setAskGeminiOpen] = useState(false);
 
@@ -74,40 +72,6 @@ const CodeEditor = () => {
       socket.emit("update-file", { fileId, content: newCode });
     }, 1200)
   ).current;
-
-  const debounce = (callback, delay) => {
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
-    debounceTimer.current = setTimeout(() => {
-      callback();
-    }, delay);
-  };
-
-  const handleMouseDown = () => {
-    isDragging.current = true;
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-
-    const handleMouseMove = (event) => {
-      if (!isDragging.current) return;
-      const newWidth = Math.min(
-        80,
-        Math.max(20, (event.clientX / window.innerWidth) * 100)
-      ); // Clamp width between 20% and 80%
-      debounce(() => setEditorWidth(newWidth), 50); // Adjust debounce timing if necessary
-    };
-
-    const handleMouseUp = () => {
-      isDragging.current = false;
-      document.body.style.cursor = "default";
-      document.body.style.userSelect = "auto";
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-  };
 
   const handleCodeRun = () => {
     setResultLoading(true);
@@ -253,11 +217,6 @@ const CodeEditor = () => {
             onChange={handleCodeChange}
           />
         </div>
-
-        <div
-          onMouseDown={handleMouseDown}
-          className="hidden sm:block w-1 bg-gray-300 cursor-col-resize"
-        />
 
         <div style={resultStyle} className="h-full bg-gray-100 overflow-auto">
           <div className="flex flex-wrap items-center justify-between p-4 border-b border-gray-200">
