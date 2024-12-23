@@ -11,7 +11,7 @@ const Feedback = () => {
     const itemsPerSlide = screenWidth >= 1024 ? 3 : screenWidth >= 768 ? 2 : 1;
     const groupedFeedback = [];
 
-    for (let i = 0; i < feedbacks.length; i += itemsPerSlide) {
+    for (let i = 0; i < feedbacks?.length; i += itemsPerSlide) {
       groupedFeedback.push(feedbacks.slice(i, i + itemsPerSlide));
     }
     return groupedFeedback;
