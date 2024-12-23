@@ -8,6 +8,7 @@ const Signup = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     name: null,
+    designation: null,
     email: null,
     password: null,
     otp: null,
@@ -22,6 +23,7 @@ const Signup = () => {
       if (!isOtpSent) {
         const res = await axios.post(`${USER_URL}/register`, {
           name: form.name,
+          designation: form.designation,
           email: form.email,
           password: form.password,
         });
@@ -68,6 +70,25 @@ const Signup = () => {
               className="mt-1 px-4 py-2 w-full border border-gray-300 rounded-md"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label
+              className="block text-sm font-medium text-gray-700"
+              htmlFor="designation"
+            >
+              Designation
+            </label>
+            <input
+              disabled={isOtpSent}
+              type="text"
+              id="designation"
+              className="mt-1 px-4 py-2 w-full border border-gray-300 rounded-md"
+              value={form.designation}
+              onChange={(e) =>
+                setForm({ ...form, designation: e.target.value })
+              }
               required
             />
           </div>

@@ -5,21 +5,25 @@ import {
   LogoutOutlined,
   SolutionOutlined,
 } from "@ant-design/icons";
-import { Avatar, Badge, Dropdown, message, Modal, Tooltip } from "antd";
+import { Avatar, Dropdown, message, Modal, Tooltip } from "antd";
 import { startCase } from "lodash";
 import { useDispatch, useSelector } from "react-redux";
 import { onLogout } from "../rtk/auth/slice";
 import { onAddMyFeedback } from "../rtk/feedbacks/action";
+import Invitation from "./Invitation";
+import { getSocket } from "../constants/socket";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const socket = getSocket();
   const { user } = useSelector((state) => state.auth);
   const { loading: feedbackLoading, error } = useSelector(
     (state) => state.feedbacks
   );
   const [addFeedback, setAddFeedback] = useState(false);
   const [feedbackContent, setFeedbackContent] = useState("");
+  const [invitationOpen, setInvitationOpen] = useState(false);
 
   const onAddFeedback = async (e) => {
     e.preventDefault();
@@ -36,6 +40,15 @@ const Navbar = () => {
   const handleLogout = () => {
     dispatch(onLogout());
   };
+
+  useEffect(() => {
+    socket.on("invitation-update", ({ message: msg }) => {
+      message.success(msg);
+    });
+    socket.on("collaborator-update", ({ message: msg }) => {
+      message.success(msg);
+    });
+  }, []);
 
   return (
     <header className="bg-white shadow">
@@ -61,9 +74,12 @@ const Navbar = () => {
             </Tooltip>
           </li>
           <li>
-            <Badge dot>
-              <BellOutlined className="cursor-pointer" />
-            </Badge>
+            <Tooltip title="Invitations">
+              <BellOutlined
+                onClick={() => setInvitationOpen(true)}
+                className="cursor-pointer"
+              />
+            </Tooltip>
           </li>
           <li>
             <Dropdown
@@ -136,6 +152,10 @@ const Navbar = () => {
           </div>
         </form>
       </Modal>
+      <Invitation
+        open={invitationOpen}
+        close={() => setInvitationOpen(false)}
+      />
     </header>
   );
 };

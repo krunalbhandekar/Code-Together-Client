@@ -27,8 +27,8 @@ function App() {
     if (isAuthenticated) {
       dispatch(onLoadMyFiles());
       dispatch(onLoadCollabFiles());
-      dispatch(onLoadFeedbacks());
     }
+    dispatch(onLoadFeedbacks());
   }, [isAuthenticated]);
 
   return (

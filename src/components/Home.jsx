@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import FileList from "./FileList";
 import { onAddMyFile } from "../rtk/myFiles/action";
 import { message } from "antd";
-import { getSocket } from "../constants/socket";
 
 const Home = () => {
   const dispatch = useDispatch();
-  const socket = getSocket();
   const [form, setForm] = useState({ name: "", language: "javascript" });
   const {
     myFiles,
@@ -32,16 +30,6 @@ const Home = () => {
       message.error(error);
     }
   };
-
-  useEffect(() => {
-    socket.on("collaborator-update", ({ message: msg }) => {
-      message.success(msg);
-    });
-
-    socket.on("invitation-update", ({ message: msg }) => {
-      message.success(msg);
-    });
-  }, []);
 
   return (
     <div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { FloatButton, message, Tooltip } from "antd";
+import { message, Tooltip } from "antd";
 import axios from "axios";
 import { FILE_URL } from "../constants/api";
 import useScreen from "../customHook/useScreen";
@@ -223,6 +223,15 @@ const CodeEditor = () => {
             </button>
           </Tooltip>
         )}
+
+        <Tooltip title="Ask to AI">
+          <button
+            onClick={() => setAskGeminiOpen(!askGeminiOpen)}
+            className="bg-blue-500 text-white px-2 py-1 rounded-full "
+          >
+            AI
+          </button>
+        </Tooltip>
       </div>
 
       <div className="flex flex-col sm:flex-row flex-grow h-[90vh] overflow-hidden">
@@ -286,19 +295,6 @@ const CodeEditor = () => {
           </div>
         </div>
       </div>
-      {!askGeminiOpen && (
-        <Tooltip title="Ask to AI">
-          <FloatButton
-            type="primary"
-            style={{
-              insetInlineEnd: 60,
-              bottom: 45,
-            }}
-            description="Ask?"
-            onClick={() => setAskGeminiOpen(!askGeminiOpen)}
-          />
-        </Tooltip>
-      )}
       <Collaborators
         open={collaboratorOpen}
         close={() => setCollaboratorOpen(false)}

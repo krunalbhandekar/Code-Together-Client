@@ -13,14 +13,12 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     dispatch(onLogin(form));
-    setForm({ email: "", password: "" });
-  };
-
-  useEffect(() => {
     if (error) {
       message.error(error);
+    } else {
+      setForm({ email: "", password: "" });
     }
-  }, [error]);
+  };
 
   return (
     <div className="h-screen flex justify-center items-center bg-cover bg-center">
