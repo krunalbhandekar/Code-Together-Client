@@ -31,6 +31,9 @@ const authSlice = createSlice({
       axios.defaults.headers.common.Authorization = null;
       window.location.href = "/login";
     },
+    onClearAuthError: (state) => {
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -60,5 +63,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { onLogout } = authSlice.actions;
+export const { onLogout, onClearAuthError } = authSlice.actions;
 export default authSlice.reducer;

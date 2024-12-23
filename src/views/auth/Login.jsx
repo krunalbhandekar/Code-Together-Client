@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { onLogin } from "../../rtk/auth/action";
 import { message } from "antd";
+import { onClearAuthError } from "../../rtk/auth/slice";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -12,13 +13,16 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    dispatch(onLogin(form));
+    await dispatch(onLogin(form)).unwrap();
+    setForm({ email: "", password: "" });
+  };
+
+  useEffect(() => {
     if (error) {
       message.error(error);
-    } else {
-      setForm({ email: "", password: "" });
+      dispatch(onClearAuthError());
     }
-  };
+  }, [error]);
 
   return (
     <div className="h-screen flex justify-center items-center bg-cover bg-center">
