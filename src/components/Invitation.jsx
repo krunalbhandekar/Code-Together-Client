@@ -5,10 +5,12 @@ import axios from "axios";
 import { INVITATION_URL } from "../constants/api";
 import { useDispatch, useSelector } from "react-redux";
 import { onLoadCollabFiles } from "../rtk/collabFiles/action";
+import { useNavigate } from "react-router-dom";
 
 const Invitation = ({ open, close }) => {
   const isSmallScreen = useScreen();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [invitations, setInvitations] = useState([]);
   const { user } = useSelector((state) => state.auth);
@@ -75,6 +77,15 @@ const Invitation = ({ open, close }) => {
           <div
             key={idx}
             className="p-2 bg-white rounded-lg shadow-md flex flex-col items-center text-sm"
+            onClick={() => {
+              if (invitation.status === "Accepted") {
+                navigate(`/app/${invitation.file._id}`);
+                close();
+              }
+            }}
+            style={{
+              cursor: invitation.status === "Accepted" ? "pointer" : "default",
+            }}
           >
             <div className="mb-4 md:mb-0">
               <p className="font-medium text-gray-800">

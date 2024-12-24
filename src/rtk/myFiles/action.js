@@ -25,3 +25,15 @@ export const onAddMyFile = createAsyncThunk(
     }
   }
 );
+
+export const onDeleteMyFile = createAsyncThunk(
+  "myFiles/onDeleteMyFile",
+  async ({ id }) => {
+    try {
+      const res = await axios.delete(`${FILE_URL}/${id}`);
+      return res.data;
+    } catch (err) {
+      return { status: "error", error: err?.message };
+    }
+  }
+);

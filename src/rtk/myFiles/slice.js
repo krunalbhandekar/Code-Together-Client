@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { onAddMyFile, onLoadMyFiles } from "./action";
+import { onAddMyFile, onDeleteMyFile, onLoadMyFiles } from "./action";
 
 const myFilesSlice = createSlice({
   name: "myFiles",
@@ -43,6 +43,26 @@ const myFilesSlice = createSlice({
         state.loading = false;
       })
       .addCase(onAddMyFile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload.message;
+      })
+      // Delete file
+      .addCase(onDeleteMyFile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(onDeleteMyFile.fulfilled, (state, action) => {
+        const result = action.payload;
+        if (result.status === "error") {
+          state.error = result.error;
+        } else {
+          state.myFiles = state.myFiles.filter(
+            (file) => file._id !== result.file._id
+          );
+        }
+        state.loading = false;
+      })
+      .addCase(onDeleteMyFile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload.message;
       });
