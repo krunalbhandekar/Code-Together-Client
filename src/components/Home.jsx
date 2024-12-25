@@ -6,7 +6,7 @@ import { message } from "antd";
 
 const Home = () => {
   const dispatch = useDispatch();
-  const [form, setForm] = useState({ name: "", language: "javascript" });
+  const [form, setForm] = useState({ name: "", language: "" });
   const {
     myFiles,
     loading: myFilesLoading,
@@ -25,7 +25,7 @@ const Home = () => {
     e.preventDefault();
     dispatch(onAddMyFile(form));
     if (!error) {
-      setForm({ name: "", language: "javascript" });
+      setForm({ name: "", language: "" });
     } else {
       message.error(error);
     }
@@ -57,15 +57,11 @@ const Home = () => {
               onChange={(e) => setForm({ ...form, language: e.target.value })}
               className="min-w-[150px] p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
             >
-              <option value="" disabled selected>
+              <option value="" selected>
                 Select Language
               </option>
-              <option selected value="javascript">
-                JavaScript
-              </option>
-              <option disabled value="python">
-                Python
-              </option>
+              <option value="javascript">JavaScript</option>
+              <option value="python">Python</option>
             </select>
             <button
               disabled={loading}

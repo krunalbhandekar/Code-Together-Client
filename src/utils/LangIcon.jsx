@@ -1,15 +1,13 @@
 import React from "react";
-import { FaPython } from "react-icons/fa6";
-import { MdOutlineJavascript } from "react-icons/md";
+import JavascriptIcon from "../assets/icons/JavascriptIcon";
+import PythonIcon from "../assets/icons/PythonIcon";
 
 const LangIcon = ({ lang }) => {
   switch (lang) {
     case "javascript":
-      return (
-        <MdOutlineJavascript className="bg-yellow-200 rounded text-black" />
-      );
+      return <JavascriptIcon />;
     case "python":
-      return <FaPython />;
+      return <PythonIcon />;
     default:
       return null;
   }
