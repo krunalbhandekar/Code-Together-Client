@@ -62,6 +62,7 @@ const Home = () => {
               </option>
               <option value="javascript">JavaScript</option>
               <option value="python">Python</option>
+              <option value="cpp">C++</option>
             </select>
             <button
               disabled={loading}
