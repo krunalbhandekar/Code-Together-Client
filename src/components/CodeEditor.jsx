@@ -196,12 +196,24 @@ const CodeEditor = () => {
             AI
           </button>
         </Tooltip>
+        <button
+          disabled={loading}
+          onClick={() => handleCodeRun()}
+          className="relative flex items-center justify-center bg-green-500 text-white rounded px-4 py-1 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {resultLoading && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-6 h-6 border-4 border-t-4 border-t-transparent border-white rounded-full animate-spin"></div>
+            </div>
+          )}
+          Run
+        </button>
       </div>
 
-      <div className="flex flex-col sm:flex-row flex-grow h-[90vh] overflow-hidden">
+      <div className="flex flex-col sm:flex-row flex-grow h-[90vh] overflow-hidden gap-4 sm:gap-0">
         <div
           style={{ ...editorStyle, overflow: "auto" }}
-          className="h-full border-b sm:border-b-0 sm:border-r border-gray-300"
+          className="h-full sm:h-full sm:border-b-0 sm:border-r border-b border-gray-300"
         >
           <MonacoEditor
             height="100%"
@@ -218,40 +230,23 @@ const CodeEditor = () => {
           />
         </div>
 
-        <div style={resultStyle} className="h-full bg-gray-100 overflow-auto">
-          <div className="flex flex-wrap items-center justify-between p-4 border-b border-gray-200">
-            <h2 className="font-semibold text-lg">Result</h2>
-            <button
-              disabled={loading}
-              onClick={() => handleCodeRun()}
-              className="relative flex items-center justify-center bg-green-500 text-white rounded px-4 py-1 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {resultLoading && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-6 h-6 border-4 border-t-4 border-t-transparent border-white rounded-full animate-spin"></div>
-                </div>
-              )}
-              Run
-            </button>
-          </div>
-          <div className="p-4">
-            {result.length > 0
-              ? result?.map((item, index) => (
-                  <div key={index} className="mb-2">
-                    {/* Replace \n with <br /> to render line breaks */}
-                    <p>
-                      {item.split("\n").map((line, i) => (
-                        <span key={i}>
-                          {line}
-                          {/* Add a <br /> tag after each line except the last one */}
-                          {i < item.split("\n").length - 1 && <br />}
-                        </span>
-                      ))}
-                    </p>
-                  </div>
-                ))
-              : null}
-          </div>
+        <div
+          style={resultStyle}
+          className="h-1/2 sm:h-full bg-gray-100 sm:max-w-full"
+        >
+          <MonacoEditor
+            height="100%"
+            language="text"
+            theme={theme}
+            value={result.join("\n")}
+            options={{
+              minimap: { enabled: false },
+              padding: { top: 30, bottom: 10 },
+              roundedSelection: true,
+              fontSize: 10,
+              lineNumbers: "off",
+            }}
+          />
         </div>
       </div>
       <Collaborators
