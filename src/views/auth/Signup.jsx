@@ -1,6 +1,6 @@
-import { message } from "antd";
-import axios from "axios";
 import React, { useState } from "react";
+import { message, Tag } from "antd";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { USER_URL } from "../../constants/api";
 
@@ -127,22 +127,29 @@ const Signup = () => {
             />
           </div>
           {isOtpSent && (
-            <div className="mb-4">
-              <label
-                className="block text-sm font-medium text-gray-700"
-                htmlFor="otp"
-              >
-                OTP
-              </label>
-              <input
-                type="text"
-                id="otp"
-                className="mt-1 px-4 py-2 w-full border border-gray-300 rounded-md"
-                value={form.otp}
-                onChange={(e) => setForm({ ...form, otp: e.target.value })}
-                required
-              />
-            </div>
+            <>
+              <div className="mb-4">
+                <label
+                  className="block text-sm font-medium text-gray-700"
+                  htmlFor="otp"
+                >
+                  OTP
+                </label>
+                <input
+                  type="text"
+                  id="otp"
+                  className="mt-1 px-4 py-2 w-full border border-gray-300 rounded-md"
+                  value={form.otp}
+                  onChange={(e) => setForm({ ...form, otp: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="flex justify-center mb-3">
+                <Tag color="red">
+                  Email is likely to appear in the <b>Spam</b> folder
+                </Tag>
+              </div>
+            </>
           )}
           <button
             type="submit"
