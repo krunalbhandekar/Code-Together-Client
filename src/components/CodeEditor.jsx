@@ -18,8 +18,10 @@ import { getSocket } from "../constants/socket";
 import Collaborators from "./Collaborators";
 import AskGemini from "./AskGemini";
 
+const LS_THEME = "ct-theme";
 const lightTheme = "vs-light";
 const darkTheme = "vs-dark";
+const currentTheme = JSON.parse(localStorage.getItem(LS_THEME)) ?? darkTheme;
 const minFontSize = 10;
 const editorWidth = 70;
 
@@ -35,7 +37,7 @@ const CodeEditor = () => {
   const [language, setLanguage] = useState(null);
   const [admin, setAdmin] = useState(null);
   const [fontSize, setFontSize] = useState(minFontSize);
-  const [theme, setTheme] = useState(darkTheme);
+  const [theme, setTheme] = useState(currentTheme);
   const [result, setResult] = useState([]);
   const [resultLoading, setResultLoading] = useState(false);
   const [collaboratorOpen, setCollaboratorOpen] = useState(false);
@@ -147,9 +149,12 @@ const CodeEditor = () => {
         {!isSmallScreen && (
           <div className="flex items-center space-x-2">
             <button
-              onClick={() =>
-                setTheme(theme === lightTheme ? darkTheme : lightTheme)
-              }
+              onClick={() => {
+                const currentTheme =
+                  theme === lightTheme ? darkTheme : lightTheme;
+                localStorage.setItem(LS_THEME, JSON.stringify(currentTheme));
+                setTheme(currentTheme);
+              }}
             >
               {theme === lightTheme ? <MoonFilled /> : <SunOutlined />}
             </button>
