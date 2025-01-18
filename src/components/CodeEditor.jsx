@@ -35,7 +35,7 @@ const CodeEditor = () => {
   const [language, setLanguage] = useState(null);
   const [admin, setAdmin] = useState(null);
   const [fontSize, setFontSize] = useState(minFontSize);
-  const [theme, setTheme] = useState(lightTheme);
+  const [theme, setTheme] = useState(darkTheme);
   const [result, setResult] = useState([]);
   const [resultLoading, setResultLoading] = useState(false);
   const [collaboratorOpen, setCollaboratorOpen] = useState(false);
