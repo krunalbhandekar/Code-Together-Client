@@ -1,181 +1,224 @@
-import React, { useState } from "react";
-import { message, Tag } from "antd";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { USER_URL } from "../../constants/api";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { ArrowLeft, MailCheck } from "lucide-react";
+import AuthLayout from "./AuthLayout";
+import PasswordInput from "./PasswordInput";
+import Button from "../../components/ui/Button";
+import { request } from "../../lib/api";
+import cn from "../../lib/cn";
 
-const Signup = () => {
-  const navigate = useNavigate();
-  const [form, setForm] = useState({
-    name: null,
-    designation: null,
-    email: null,
-    password: null,
-    otp: null,
-  });
-  const [loading, setLoading] = useState(false);
-  const [isOtpSent, setIsOtpSent] = useState(false);
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+const Field = ({ id, label, error, children }) => (
+  <div>
+    <label htmlFor={id} className="label">
+      {label}
+    </label>
+    {children}
+    {error && <p className="field-error">{error.message}</p>}
+  </div>
+);
+
+const DetailsStep = ({ defaultValues, onSent }) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({ defaultValues });
+
+  const onSubmit = async (values) => {
+    const details = {
+      name: values.name.trim(),
+      designation: values.designation.trim(),
+      email: values.email.trim().toLowerCase(),
+      password: values.password,
+    };
     try {
-      if (!isOtpSent) {
-        const res = await axios.post(`${USER_URL}/register`, {
-          name: form.name,
-          designation: form.designation,
-          email: form.email,
-          password: form.password,
-        });
-        if (res.data.status === "success") {
-          setIsOtpSent(true);
-          message.success(`Otp has been sent to ${form.email}`);
-        } else {
-          message.error(res.data.error);
-        }
-      } else {
-        const res = await axios.post(`${USER_URL}/verify-otp`, {
-          email: form.email,
-          otp: form.otp,
-        });
-        if (res.data.status === "success") {
-          message.success("Signup Successful");
-          navigate("/login");
-        } else {
-          message.error(res.data.error);
-        }
-      }
+      await request({ method: "post", url: "/user/register", data: details });
+      toast.success(`We sent a verification code to ${details.email}`);
+      onSent(details);
     } catch (err) {
-      message.error(err?.message);
+      toast.error(err.message);
     }
-    setLoading(false);
   };
 
   return (
-    <div className="h-screen flex justify-center items-center bg-cover bg-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-96">
-        <h2 className="text-2xl font-semibold mb-6 text-center">Signup</h2>
-        <form onSubmit={handleSignup}>
-          <div className="mb-4">
-            <label
-              className="block text-sm font-medium text-gray-700"
-              htmlFor="name"
-            >
-              Name
-            </label>
-            <input
-              disabled={isOtpSent}
-              type="text"
-              id="name"
-              className="mt-1 px-4 py-2 w-full border border-gray-300 rounded-md"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label
-              className="block text-sm font-medium text-gray-700"
-              htmlFor="designation"
-            >
-              Designation
-            </label>
-            <input
-              disabled={isOtpSent}
-              type="text"
-              id="designation"
-              className="mt-1 px-4 py-2 w-full border border-gray-300 rounded-md"
-              value={form.designation}
-              onChange={(e) =>
-                setForm({ ...form, designation: e.target.value })
-              }
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label
-              className="block text-sm font-medium text-gray-700"
-              htmlFor="email"
-            >
-              Email
-            </label>
-            <input
-              disabled={isOtpSent}
-              type="email"
-              id="email"
-              className="mt-1 px-4 py-2 w-full border border-gray-300 rounded-md"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label
-              className="block text-sm font-medium text-gray-700"
-              htmlFor="password"
-            >
-              Password
-            </label>
-            <input
-              disabled={isOtpSent}
-              type="password"
-              id="password"
-              className="mt-1 px-4 py-2 w-full border border-gray-300 rounded-md"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              required
-            />
-          </div>
-          {isOtpSent && (
-            <>
-              <div className="mb-4">
-                <label
-                  className="block text-sm font-medium text-gray-700"
-                  htmlFor="otp"
-                >
-                  OTP
-                </label>
-                <input
-                  type="text"
-                  id="otp"
-                  className="mt-1 px-4 py-2 w-full border border-gray-300 rounded-md"
-                  value={form.otp}
-                  onChange={(e) => setForm({ ...form, otp: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="flex justify-center mb-3">
-                <Tag color="red">
-                  Email is likely to appear in the <b>Spam</b> folder
-                </Tag>
-              </div>
-            </>
-          )}
-          <button
-            type="submit"
-            disabled={loading}
-            style={{ width: "100%" }}
-            className="relative flex items-center justify-center px-4 py-2 text-white bg-indigo-600 rounded hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-6 h-6 border-4 border-t-4 border-t-transparent border-white rounded-full animate-spin"></div>
-              </div>
-            )}
-            {isOtpSent ? "Verify Otp" : "Signup"}
-          </button>
-        </form>
-        <p className="mt-4 text-center">
-          Already have an account?{" "}
-          <button
-            className="text-indigo-500 hover:underline"
-            onClick={() => navigate("/login")}
-          >
-            Login
-          </button>
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+      <Field id="name" label="Full name" error={errors.name}>
+        <input
+          id="name"
+          autoComplete="name"
+          placeholder="Ada Lovelace"
+          className={cn("input", errors.name && "input-error")}
+          {...register("name", {
+            validate: (v) => v.trim().length > 0 || "Enter your name.",
+            maxLength: { value: 60, message: "Use 60 characters or fewer." },
+          })}
+        />
+      </Field>
+      <Field id="designation" label="Role" error={errors.designation}>
+        <input
+          id="designation"
+          autoComplete="organization-title"
+          placeholder="Full stack developer"
+          className={cn("input", errors.designation && "input-error")}
+          {...register("designation", {
+            validate: (v) => v.trim().length > 0 || "Enter your role.",
+            maxLength: { value: 60, message: "Use 60 characters or fewer." },
+          })}
+        />
+      </Field>
+      <Field id="email" label="Email" error={errors.email}>
+        <input
+          id="email"
+          type="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          className={cn("input", errors.email && "input-error")}
+          {...register("email", {
+            required: "Enter your email.",
+            pattern: { value: EMAIL_PATTERN, message: "Enter a valid email address." },
+          })}
+        />
+      </Field>
+      <Field id="password" label="Password" error={errors.password}>
+        <PasswordInput
+          id="password"
+          autoComplete="new-password"
+          placeholder="At least 8 characters"
+          invalid={Boolean(errors.password)}
+          {...register("password", {
+            required: "Create a password.",
+            minLength: { value: 8, message: "Use at least 8 characters." },
+          })}
+        />
+      </Field>
+      <Button type="submit" loading={isSubmitting} className="w-full" size="lg">
+        Create account
+      </Button>
+    </form>
+  );
+};
+
+const VerifyStep = ({ details, onEdit }) => {
+  const navigate = useNavigate();
+  const [resending, setResending] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({ defaultValues: { otp: "" } });
+
+  const onSubmit = async ({ otp }) => {
+    try {
+      await request({
+        method: "post",
+        url: "/user/verify-otp",
+        data: { email: details.email, otp: otp.trim() },
+      });
+      toast.success("Your account is ready. Please log in.");
+      navigate("/login");
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  // Registering again with an unverified email sends a fresh code.
+  const resend = async () => {
+    setResending(true);
+    try {
+      await request({ method: "post", url: "/user/register", data: details });
+      toast.success("We sent you a new code.");
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setResending(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="mb-6 flex gap-3 rounded-xl bg-indigo-50 p-4 text-sm text-indigo-900">
+        <MailCheck className="size-5 shrink-0 text-indigo-600" />
+        <p>
+          Enter the code we sent to <span className="font-semibold">{details.email}</span>. It
+          expires in 5 minutes. If you can't find it, check your spam folder.
         </p>
       </div>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+        <Field id="otp" label="Verification code" error={errors.otp}>
+          <input
+            id="otp"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            placeholder="123456"
+            className={cn("input text-center text-lg tracking-[0.5em]", errors.otp && "input-error")}
+            {...register("otp", {
+              validate: (v) => v.trim().length > 0 || "Enter the code from your email.",
+            })}
+          />
+        </Field>
+        <Button type="submit" loading={isSubmitting} className="w-full" size="lg">
+          Verify email
+        </Button>
+      </form>
+      <div className="mt-4 flex items-center justify-between text-sm">
+        <button
+          type="button"
+          onClick={onEdit}
+          className="inline-flex items-center gap-1 font-medium text-slate-600 hover:text-slate-900"
+        >
+          <ArrowLeft className="size-4" />
+          Edit details
+        </button>
+        <button
+          type="button"
+          onClick={resend}
+          disabled={resending}
+          className="font-medium text-indigo-600 hover:text-indigo-500 disabled:opacity-50"
+        >
+          {resending ? "Sending…" : "Resend code"}
+        </button>
+      </div>
     </div>
+  );
+};
+
+const Signup = () => {
+  const [details, setDetails] = useState(null);
+  const [step, setStep] = useState("details");
+
+  return (
+    <AuthLayout
+      title={step === "details" ? "Create your account" : "Check your email"}
+      subtitle={
+        step === "details"
+          ? "Start coding with your team in minutes."
+          : "One last step to verify it's you."
+      }
+      footer={
+        <>
+          Already have an account?{" "}
+          <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-500">
+            Log in
+          </Link>
+        </>
+      }
+    >
+      {step === "details" ? (
+        <DetailsStep
+          defaultValues={details ?? { name: "", designation: "", email: "", password: "" }}
+          onSent={(sent) => {
+            setDetails(sent);
+            setStep("verify");
+          }}
+        />
+      ) : (
+        <VerifyStep details={details} onEdit={() => setStep("details")} />
+      )}
+    </AuthLayout>
   );
 };
 

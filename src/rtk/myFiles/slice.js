@@ -1,71 +1,55 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { onAddMyFile, onDeleteMyFile, onLoadMyFiles } from "./action";
+import { loggedOut } from "../auth/slice";
+
+const initialState = {
+  myFiles: [],
+  loading: false, // loading the list
+  creating: false,
+  deletingId: null,
+  loaded: false,
+  error: null,
+};
 
 const myFilesSlice = createSlice({
   name: "myFiles",
-  initialState: {
-    myFiles: [],
-    loading: false,
-    error: null,
-  },
+  initialState,
   extraReducers: (builder) => {
     builder
-      // fetch my files
       .addCase(onLoadMyFiles.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(onLoadMyFiles.fulfilled, (state, action) => {
-        const result = action.payload;
-        if (result.status === "error") {
-          state.error = result.error;
-        } else {
-          state.myFiles = result.files;
-        }
         state.loading = false;
+        state.loaded = true;
+        state.myFiles = action.payload;
       })
       .addCase(onLoadMyFiles.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload.message;
+        state.error = action.payload ?? action.error.message;
       })
-      // add file
       .addCase(onAddMyFile.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        state.creating = true;
       })
       .addCase(onAddMyFile.fulfilled, (state, action) => {
-        const result = action.payload;
-        if (result.status === "error") {
-          state.error = result.error;
-        } else {
-          state.myFiles.push(result.file);
-        }
-        state.loading = false;
+        state.creating = false;
+        state.myFiles.push(action.payload);
       })
-      .addCase(onAddMyFile.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload.message;
+      .addCase(onAddMyFile.rejected, (state) => {
+        state.creating = false;
       })
-      // Delete file
-      .addCase(onDeleteMyFile.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+      .addCase(onDeleteMyFile.pending, (state, action) => {
+        state.deletingId = action.meta.arg.id;
       })
       .addCase(onDeleteMyFile.fulfilled, (state, action) => {
-        const result = action.payload;
-        if (result.status === "error") {
-          state.error = result.error;
-        } else {
-          state.myFiles = state.myFiles.filter(
-            (file) => file._id !== result.file._id
-          );
-        }
-        state.loading = false;
+        state.deletingId = null;
+        state.myFiles = state.myFiles.filter((file) => file._id !== action.payload);
       })
-      .addCase(onDeleteMyFile.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload.message;
-      });
+      .addCase(onDeleteMyFile.rejected, (state) => {
+        state.deletingId = null;
+      })
+      .addCase(loggedOut, () => initialState);
   },
 });
 

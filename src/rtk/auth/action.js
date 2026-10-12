@@ -1,15 +1,26 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-import { USER_URL } from "../../constants/api";
+import { request } from "../../lib/api";
+import { clearSession, saveSession } from "../../lib/session";
+import { loggedOut } from "./slice";
 
 export const onLogin = createAsyncThunk(
-  "login",
-  async ({ email, password }) => {
+  "auth/login",
+  async ({ email, password }, { rejectWithValue }) => {
     try {
-      const res = await axios.post(`${USER_URL}/login`, { email, password });
-      return res.data;
+      const data = await request({
+        method: "post",
+        url: "/user/login",
+        data: { email, password },
+      });
+      saveSession(data.token, data.user);
+      return { token: data.token, user: data.user };
     } catch (err) {
-      return { status: "error", error: err?.message };
+      return rejectWithValue(err.message);
     }
-  }
+  },
 );
+
+export const onLogout = () => (dispatch) => {
+  clearSession();
+  dispatch(loggedOut());
+};

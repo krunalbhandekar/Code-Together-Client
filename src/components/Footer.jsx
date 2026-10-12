@@ -1,13 +1,14 @@
-import React from "react";
+const YEAR = new Date().getFullYear();
 
-const Footer = () => {
-  return (
-    <footer className="bg-black text-center py-4 text-white">
+const Footer = () => (
+  <footer className="border-t border-slate-200 bg-white">
+    <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-6 text-sm text-slate-500 sm:flex-row sm:px-6 lg:px-8">
+      <p>&copy; {YEAR} Code Together</p>
       <p>
-        &copy; {new Date().getFullYear()} Code Together. By - Krunal Bhandekar
+        Built by <span className="font-medium text-slate-700">Krunal Bhandekar</span>
       </p>
-    </footer>
-  );
-};
+    </div>
+  </footer>
+);
 
 export default Footer;

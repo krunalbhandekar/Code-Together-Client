@@ -1,15 +1,14 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { FILE_URL } from "../../constants/api";
-import axios from "axios";
+import { request } from "../../lib/api";
 
 export const onLoadCollabFiles = createAsyncThunk(
-  "collabFiles/onLoadCollabFiles",
-  async () => {
+  "collabFiles/load",
+  async (_, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`${FILE_URL}/collab`);
-      return res.data;
+      const data = await request({ url: "/file/collab" });
+      return data.collabFiles ?? [];
     } catch (err) {
-      return { status: "error", error: err?.message };
+      return rejectWithValue(err.message);
     }
-  }
+  },
 );

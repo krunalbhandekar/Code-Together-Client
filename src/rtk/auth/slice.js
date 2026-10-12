@@ -1,67 +1,44 @@
 import { createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
-import { onLogin } from "./action";
-import { disconnectSocket } from "../../constants/socket";
+import { loadStoredSession } from "../../lib/session";
 
-const LS_TOKEN = "ct-token";
-const LS_USER = "ct-user";
-
-const token = JSON.parse(localStorage.getItem(LS_TOKEN));
-const user = JSON.parse(localStorage.getItem(LS_USER));
+const { token, user } = loadStoredSession();
 
 const authSlice = createSlice({
   name: "auth",
   initialState: {
     loading: false,
-    isAuthenticated: token !== null && user !== null,
+    isAuthenticated: Boolean(token && user),
     token,
     user,
     error: null,
   },
   reducers: {
-    onLogout: (state) => {
-      localStorage.removeItem(LS_TOKEN);
-      localStorage.removeItem(LS_USER);
+    loggedOut: (state) => {
       state.loading = false;
       state.isAuthenticated = false;
       state.token = null;
       state.user = null;
       state.error = null;
-      disconnectSocket();
-      axios.defaults.headers.common.Authorization = null;
-      window.location.href = "/login";
-    },
-    onClearAuthError: (state) => {
-      state.error = null;
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(onLogin.pending, (state) => {
+      .addCase("auth/login/pending", (state) => {
         state.loading = true;
-        state.isAuthenticated = false;
         state.error = null;
       })
-      .addCase(onLogin.fulfilled, (state, action) => {
-        const { status, token, user, error = null } = action.payload;
-        if (status === "error") {
-          state.error = error;
-        } else {
-          localStorage.setItem(LS_TOKEN, JSON.stringify(token));
-          localStorage.setItem(LS_USER, JSON.stringify(user));
-          state.isAuthenticated = true;
-          axios.defaults.headers.common.Authorization = token;
-          window.location.href = "/app";
-        }
+      .addCase("auth/login/fulfilled", (state, action) => {
         state.loading = false;
+        state.isAuthenticated = true;
+        state.token = action.payload.token;
+        state.user = action.payload.user;
       })
-      .addCase(onLogin.rejected, (state, action) => {
+      .addCase("auth/login/rejected", (state, action) => {
         state.loading = false;
-        state.isAuthenticated = false;
-        state.error = action.payload.message;
+        state.error = action.payload ?? action.error.message;
       });
   },
 });
 
-export const { onLogout, onClearAuthError } = authSlice.actions;
+export const { loggedOut } = authSlice.actions;
 export default authSlice.reducer;

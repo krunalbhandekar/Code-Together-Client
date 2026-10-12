@@ -13,13 +13,13 @@ import VsCodeIcon from "../assets/icons/VsCodeIcon";
 import TailwindIcon from "../assets/icons/TailwindIcon";
 
 const techStacks = [
-  { name: "React.js", description: "Frontend", icon: <ReactIcon /> },
+  { name: "React 19", description: "Frontend", icon: <ReactIcon /> },
   {
     name: "Redux Toolkit",
     description: "State Management",
     icon: <ReduxIcon />,
   },
-  { name: "Tailwind", description: "CSS", icon: <TailwindIcon /> },
+  { name: "Tailwind CSS 4", description: "Styling", icon: <TailwindIcon /> },
   { name: "Node.js", description: "Backend", icon: <NodeIcon /> },
   { name: "MongoDB", description: "Database", icon: <MongoDBIcon /> },
   {

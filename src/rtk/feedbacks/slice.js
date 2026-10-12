@@ -6,45 +6,34 @@ const feedbackSlice = createSlice({
   initialState: {
     feedbacks: [],
     loading: false,
+    loaded: false,
+    submitting: false,
     error: null,
   },
   extraReducers: (builder) => {
     builder
-      //fetch all feedbacks
       .addCase(onLoadFeedbacks.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(onLoadFeedbacks.fulfilled, (state, action) => {
-        const result = action.payload;
-        if (result.status === "error") {
-          state.error = result.error;
-        } else {
-          state.feedbacks = result.feedbacks;
-        }
         state.loading = false;
+        state.loaded = true;
+        state.feedbacks = action.payload;
       })
       .addCase(onLoadFeedbacks.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload.message;
+        state.error = action.payload ?? action.error.message;
       })
-      //add feedback
       .addCase(onAddMyFeedback.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        state.submitting = true;
       })
       .addCase(onAddMyFeedback.fulfilled, (state, action) => {
-        const result = action.payload;
-        if (result.status === "error") {
-          state.error = result.error;
-        } else {
-          state.feedbacks.push(result.feedback);
-        }
-        state.loading = false;
+        state.submitting = false;
+        state.feedbacks.push(action.payload);
       })
-      .addCase(onAddMyFeedback.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload.message;
+      .addCase(onAddMyFeedback.rejected, (state) => {
+        state.submitting = false;
       });
   },
 });

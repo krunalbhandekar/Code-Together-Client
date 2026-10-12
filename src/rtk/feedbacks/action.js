@@ -1,27 +1,35 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-import { FEEDBACK_URL } from "../../constants/api";
+import { request } from "../../lib/api";
 
 export const onLoadFeedbacks = createAsyncThunk(
-  "feedbacks/onLoadFeedbacks",
-  async () => {
+  "feedbacks/load",
+  async (_, { rejectWithValue }) => {
     try {
-      const res = await axios.get(FEEDBACK_URL);
-      return res.data;
+      const data = await request({ url: "/feedback" });
+      return data.feedbacks ?? [];
     } catch (err) {
-      return { status: "error", error: err?.message };
+      return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const onAddMyFeedback = createAsyncThunk(
-  "feedbacks/onAddMyFeedback",
-  async ({ content }) => {
+  "feedbacks/add",
+  async ({ content }, { getState, rejectWithValue }) => {
     try {
-      const res = await axios.post(FEEDBACK_URL, { content });
-      return res.data;
+      const data = await request({
+        method: "post",
+        url: "/feedback",
+        data: { content },
+      });
+      // The server returns createdBy as an id only; fill in the author for display.
+      const { user } = getState().auth;
+      return {
+        ...data.feedback,
+        createdBy: { _id: user?._id, name: user?.name, designation: user?.designation },
+      };
     } catch (err) {
-      return { status: "error", error: err?.message };
+      return rejectWithValue(err.message);
     }
-  }
+  },
 );
