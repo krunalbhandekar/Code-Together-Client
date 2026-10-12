@@ -3,10 +3,10 @@ import { BASE_URL } from "./api";
 
 let socket = null;
 
-export const socketInit = (userId) => {
-  if (userId && !socket) {
+export const socketInit = (token) => {
+  if (token && !socket) {
     socket = io(BASE_URL, {
-      query: { userId },
+      auth: { token },
       transports: ["websocket", "polling"],
     });
   }

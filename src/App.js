@@ -21,7 +21,7 @@ function App() {
   const { isAuthenticated, token, user } = useSelector((state) => state.auth);
 
   if (token !== null && isAuthenticated && user) {
-    socketInit(user?._id);
+    socketInit(token);
     axios.defaults.headers.common.Authorization = token;
   }
 
