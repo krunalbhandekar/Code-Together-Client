@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { socketInit } from "./constants/socket";
 import Landing from "./components/Landing";
+import ServerWakeup from "./components/ServerWakeup";
 import { useEffect } from "react";
 import { onLoadMyFiles } from "./rtk/myFiles/action";
 import { onLoadCollabFiles } from "./rtk/collabFiles/action";
@@ -50,46 +51,49 @@ function App() {
       } else {
         return Promise.reject(error);
       }
-    }
+    },
   );
 
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route
-        path="/login"
-        element={
-          <ProtectedRoute
-            cond={isAuthenticated}
-            ifComp={<Navigate to="/app" />}
-            elseComp={<Login />}
-          />
-        }
-      />
-      <Route
-        path="/signup"
-        element={
-          <ProtectedRoute
-            cond={isAuthenticated}
-            ifComp={<Navigate to="/app" />}
-            elseComp={<Signup />}
-          />
-        }
-      />
-      <Route
-        path="/app"
-        element={
-          <ProtectedRoute
-            cond={isAuthenticated}
-            ifComp={<AppLayout />}
-            elseComp={<Navigate to="/login" />}
-          />
-        }
-      >
-        <Route index element={<Home />} />
-        <Route path=":fileId" element={<CodeEditor />} />
-      </Route>
-    </Routes>
+    <>
+      <ServerWakeup />
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route
+          path="/login"
+          element={
+            <ProtectedRoute
+              cond={isAuthenticated}
+              ifComp={<Navigate to="/app" />}
+              elseComp={<Login />}
+            />
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <ProtectedRoute
+              cond={isAuthenticated}
+              ifComp={<Navigate to="/app" />}
+              elseComp={<Signup />}
+            />
+          }
+        />
+        <Route
+          path="/app"
+          element={
+            <ProtectedRoute
+              cond={isAuthenticated}
+              ifComp={<AppLayout />}
+              elseComp={<Navigate to="/login" />}
+            />
+          }
+        >
+          <Route index element={<Home />} />
+          <Route path=":fileId" element={<CodeEditor />} />
+        </Route>
+      </Routes>
+    </>
   );
 }
 
