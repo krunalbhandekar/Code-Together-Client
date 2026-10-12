@@ -42,9 +42,12 @@ const CodeEditor = () => {
   const [resultLoading, setResultLoading] = useState(false);
   const [collaboratorOpen, setCollaboratorOpen] = useState(false);
   const [askGeminiOpen, setAskGeminiOpen] = useState(false);
+  const [loadedFileId, setLoadedFileId] = useState(null);
+  const debounceEmitRef = useRef(null);
 
   const onLoadFile = async () => {
     setLoading(true);
+    setLoadedFileId(null);
     try {
       const res = await axios.get(`${FILE_URL}/${fileId}`);
       if (res.data.status === "success") {
@@ -53,6 +56,7 @@ const CodeEditor = () => {
         setContent(file.content);
         setLanguage(file.language);
         setAdmin(file.createdBy);
+        setLoadedFileId(fileId);
       } else {
         message.error(res.data.error);
         navigate("/app");
@@ -64,16 +68,28 @@ const CodeEditor = () => {
     setLoading(false);
   };
 
+  const isFileReady = loadedFileId === fileId;
+
   const handleCodeChange = (newCode) => {
     setContent(newCode);
-    debounceEmit(newCode);
+    if (isFileReady) {
+      debounceEmitRef.current?.(newCode);
+    }
   };
 
-  const debounceEmit = useRef(
-    customDebounce((newCode) => {
-      socket.emit("update-file", { fileId, content: newCode });
-    }, 1200)
-  ).current;
+  useEffect(() => {
+    const debounced = customDebounce((newCode) => {
+      getSocket()?.emit("update-file", { fileId, content: newCode });
+    }, 1200);
+    debounceEmitRef.current = debounced;
+
+    return () => {
+      debounced.flush();
+      if (debounceEmitRef.current === debounced) {
+        debounceEmitRef.current = null;
+      }
+    };
+  }, [fileId]);
 
   const handleCodeRun = () => {
     setResultLoading(true);
@@ -230,6 +246,7 @@ const CodeEditor = () => {
               padding: { top: 30, bottom: 10 },
               roundedSelection: true,
               fontSize: fontSize,
+              readOnly: !isFileReady,
             }}
             onChange={handleCodeChange}
           />
