@@ -1,22 +1,15 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
-const useScreen = () => {
-  const [isSmallScreen, setIsSmallScreen] = useState(false);
+const QUERY = "(max-width: 640px)";
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsSmallScreen(window.innerWidth <= 640);
-    };
-    handleResize();
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
-  return isSmallScreen;
+const subscribe = (callback) => {
+  const media = window.matchMedia(QUERY);
+  media.addEventListener("change", callback);
+  return () => media.removeEventListener("change", callback);
 };
+
+// True on screens 640px wide or narrower.
+const useScreen = () =>
+  useSyncExternalStore(subscribe, () => window.matchMedia(QUERY).matches);
 
 export default useScreen;

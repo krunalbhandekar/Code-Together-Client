@@ -1,123 +1,141 @@
-import { message, Modal } from "antd";
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import AvatarStatus from "../utils/AvatarStatus";
-import axios from "axios";
-import { INVITATION_URL } from "../constants/api";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { Loader2, Send, UserPlus } from "lucide-react";
+import Modal from "./ui/Modal";
+import Button from "./ui/Button";
+import Avatar from "./ui/Avatar";
+import Badge from "./ui/Badge";
+import { fetchFileCollaborators, sendInvitation } from "../lib/invitations";
+import cn from "../lib/cn";
 
-const Collaborators = ({
-  open = false,
-  close = () => {},
-  admin = null,
-  fileId = "",
-}) => {
-  const { user } = useSelector((state) => state.auth);
-  const [inviteLoading, setInviteLoading] = useState(false);
-  const [receiverEmail, setReceiverEmail] = useState("");
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const Person = ({ name, email, badge }) => (
+  <li className="flex items-center gap-3 py-3">
+    <Avatar name={name || email} size="sm" />
+    <div className="min-w-0 flex-1">
+      <p className="truncate text-sm font-medium text-slate-900">{name || email}</p>
+      {name && email && <p className="truncate text-xs text-slate-500">{email}</p>}
+    </div>
+    {badge}
+  </li>
+);
+
+const Collaborators = ({ open = false, close = () => {}, admin = null, fileId = "" }) => {
+  const user = useSelector((state) => state.auth.user);
+  const [loading, setLoading] = useState(false);
   const [collaborators, setCollaborators] = useState([]);
+  const isOwner = Boolean(user?._id && admin?._id && user._id === admin._id);
 
-  const onLoad = async () => {
-    setInviteLoading(true);
-    try {
-      const res = await axios.get(INVITATION_URL, {
-        headers: {
-          "X-API-Filters": JSON.stringify({
-            file: [fileId],
-            status: ["Accepted"],
-          }),
-        },
-      });
-      if (res.data.status === "success") {
-        setCollaborators(res.data.invitations);
-      } else {
-        message.error(res.data.error);
-      }
-    } catch (err) {
-      message.error(err?.message);
-    }
-    setInviteLoading(false);
-  };
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm({ defaultValues: { email: "" } });
 
-  const sendInvitation = async (e) => {
-    e.preventDefault();
-    setInviteLoading(true);
+  const load = useCallback(async () => {
+    if (!fileId) return;
+    setLoading(true);
     try {
-      const res = await axios.post(`${INVITATION_URL}`, {
-        fileId,
-        receiverEmail,
-      });
-      if (res.data.status === "success") {
-        onLoad();
-        message.success(`Invitation has been sent to ${receiverEmail}`);
-        setReceiverEmail("");
-      } else {
-        message.error(res.data.error);
-      }
+      setCollaborators(await fetchFileCollaborators(fileId));
     } catch (err) {
-      message.err(err?.message);
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
     }
-    setInviteLoading(false);
-  };
+  }, [fileId]);
 
   useEffect(() => {
-    if (open) {
-      onLoad();
-    } else {
-      setCollaborators([]);
-      setReceiverEmail("");
+    if (open) load();
+    else reset();
+  }, [open, load, reset]);
+
+  const onInvite = async ({ email }) => {
+    const receiverEmail = email.trim().toLowerCase();
+    try {
+      await sendInvitation(fileId, receiverEmail);
+      toast.success(`Invitation sent to ${receiverEmail}`);
+      reset();
+      load();
+    } catch (err) {
+      toast.error(err.message);
     }
-  }, [open]);
+  };
 
   return (
     <Modal
-      title="Collaborators"
       open={open}
-      onCancel={close}
-      footer={null}
-      closable={true}
-      maskClosable={false}
-      loading={inviteLoading}
+      onClose={close}
+      title="Share this file"
+      description="Collaborators can view and edit this file in real time."
     >
-      {user?._id === admin?._id && (
-        <form className="mb-5 shadow p-3 rounded-lg" onSubmit={sendInvitation}>
-          <div className="flex flex-wrap justify-between items-center mt-4 gap-4">
-            <input
-              value={receiverEmail}
-              type="email"
-              placeholder="Enter email address"
-              required
-              onChange={(e) => setReceiverEmail(e.target.value)}
-              className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600"
-            />
-            <button
-              disabled={inviteLoading}
-              className="relative flex items-center justify-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 desabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {inviteLoading && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-6 h-6 border-4 border-t-4 border-transparent border-white rounded-full animate-spin"></div>
-                </div>
-              )}
+      {isOwner && (
+        <form onSubmit={handleSubmit(onInvite)} noValidate className="mb-6">
+          <label htmlFor="invite-email" className="label">
+            Invite by email
+          </label>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <UserPlus className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+              <input
+                id="invite-email"
+                type="email"
+                placeholder="teammate@example.com"
+                autoComplete="off"
+                className={cn("input pl-9", errors.email && "input-error")}
+                {...register("email", {
+                  required: "Enter an email address.",
+                  pattern: { value: EMAIL_PATTERN, message: "Enter a valid email address." },
+                  validate: (value) =>
+                    value.trim().toLowerCase() !== user?.email?.toLowerCase() ||
+                    "You already own this file.",
+                })}
+              />
+            </div>
+            <Button type="submit" loading={isSubmitting}>
+              {!isSubmitting && <Send className="size-4" />}
               Invite
-            </button>
+            </Button>
           </div>
+          {errors.email && <p className="field-error">{errors.email.message}</p>}
         </form>
       )}
-      <div className="max-h-[300px] shadow overflow-y-auto p-3 rounded-lg">
-        <AvatarStatus
-          name={admin?.name ?? ""}
-          subTitle={admin?.email ?? ""}
-          suffix="Admin"
-        />
-        {collaborators?.map((e) => (
-          <div className="flex flex-wrap justify-between items-center mt-4 gap-4">
-            <AvatarStatus
-              name={e?.reveiver?.name ?? e?.receiverEmail}
-              subTitle={e?.reveiver?.email ?? e?.receiverEmail}
-            />
-          </div>
+
+      <h3 className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+        People with access
+      </h3>
+      <ul className="mt-1 max-h-72 divide-y divide-slate-100 overflow-y-auto">
+        {admin && (
+          <Person
+            name={admin.name}
+            email={admin.email}
+            badge={<Badge tone="indigo">Owner</Badge>}
+          />
+        )}
+        {collaborators.map((invitation) => (
+          <Person
+            key={invitation._id}
+            name={invitation.receiver?.name}
+            email={invitation.receiver?.email ?? invitation.receiverEmail}
+            badge={<Badge>Editor</Badge>}
+          />
         ))}
-      </div>
+      </ul>
+      {loading && collaborators.length === 0 && (
+        <div className="flex justify-center py-4">
+          <Loader2 className="size-5 animate-spin text-indigo-600" aria-label="Loading collaborators" />
+        </div>
+      )}
+      {!loading && collaborators.length === 0 && (
+        <p className="py-3 text-sm text-slate-500">
+          {isOwner
+            ? "No collaborators yet. Invite someone above to code together."
+            : "No other collaborators yet."}
+        </p>
+      )}
     </Modal>
   );
 };

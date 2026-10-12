@@ -1,89 +1,162 @@
-import React, { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { FilePlus2, FolderOpen, Search, Users } from "lucide-react";
 import FileList from "./FileList";
+import Button from "./ui/Button";
 import { onAddMyFile } from "../rtk/myFiles/action";
-import { message } from "antd";
+import { LANGUAGES } from "../utils/LangIcon";
+import cn from "../lib/cn";
 
-const Home = () => {
+const CreateFileForm = () => {
   const dispatch = useDispatch();
-  const [form, setForm] = useState({ name: "", language: "" });
+  const navigate = useNavigate();
+  const creating = useSelector((state) => state.myFiles.creating);
   const {
-    myFiles,
-    loading: myFilesLoading,
-    error: myFilesError,
-  } = useSelector((state) => state.myFiles);
-  const {
-    collabFiles,
-    loading: collabFilesLoading,
-    error: collabFilesError,
-  } = useSelector((state) => state.collabFiles);
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({ defaultValues: { name: "", language: "javascript" } });
 
-  const loading = myFilesLoading || collabFilesLoading;
-  const error = myFilesError || collabFilesError;
-
-  const handleCreateFile = (e) => {
-    e.preventDefault();
-    dispatch(onAddMyFile(form));
-    if (!error) {
-      setForm({ name: "", language: "" });
-    } else {
-      message.error(error);
+  const onSubmit = async ({ name, language }) => {
+    try {
+      const file = await dispatch(onAddMyFile({ name: name.trim(), language })).unwrap();
+      toast.success(`Created ${file.name}`);
+      reset();
+      navigate(`/app/${file._id}`);
+    } catch (message) {
+      toast.error(message);
     }
   };
 
-  useEffect(() => {
-    if (error) {
-      message.error(error);
-    }
-  }, [error]);
+  return (
+    <section className="card p-5 sm:p-6" aria-labelledby="create-file-title">
+      <div className="mb-4 flex items-center gap-3">
+        <span className="flex size-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+          <FilePlus2 className="size-5" />
+        </span>
+        <div>
+          <h2 id="create-file-title" className="font-semibold text-slate-900">
+            Create a new file
+          </h2>
+          <p className="text-sm text-slate-500">Pick a name and a language to start coding.</p>
+        </div>
+      </div>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+        className="flex flex-col gap-3 sm:flex-row sm:items-start"
+      >
+        <div className="flex-1">
+          <label htmlFor="file-name" className="sr-only">
+            File name
+          </label>
+          <input
+            id="file-name"
+            placeholder="e.g. two-sum"
+            autoComplete="off"
+            className={cn("input", errors.name && "input-error")}
+            {...register("name", {
+              validate: (value) => value.trim().length > 0 || "Enter a file name.",
+              maxLength: { value: 60, message: "Use 60 characters or fewer." },
+            })}
+          />
+          {errors.name && <p className="field-error">{errors.name.message}</p>}
+        </div>
+        <div className="sm:w-44">
+          <label htmlFor="file-language" className="sr-only">
+            Language
+          </label>
+          <select id="file-language" className="input" {...register("language")}>
+            {LANGUAGES.map((lang) => (
+              <option key={lang.value} value={lang.value}>
+                {lang.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <Button type="submit" loading={creating} className="h-[42px]">
+          Create file
+        </Button>
+      </form>
+    </section>
+  );
+};
+
+const matches = (file, term) =>
+  (file?.name ?? "").toLowerCase().includes(term.trim().toLowerCase());
+
+const Home = () => {
+  const user = useSelector((state) => state.auth.user);
+  const myFilesState = useSelector((state) => state.myFiles);
+  const collabState = useSelector((state) => state.collabFiles);
+  const [search, setSearch] = useState("");
+
+  const myFiles = useMemo(
+    () => myFilesState.myFiles.filter((file) => matches(file, search)),
+    [myFilesState.myFiles, search],
+  );
+  const collabFiles = useMemo(
+    () => collabState.collabFiles.filter((file) => matches(file, search)),
+    [collabState.collabFiles, search],
+  );
+
+  const firstName = user?.name?.split(" ")[0];
 
   return (
-    <div>
-      <div className="mb-6 px-4 py-4 rounded-lg shadow">
-        <h2 className="text-lg font-semibold text-gray-800">Create New File</h2>
-        <form onSubmit={handleCreateFile}>
-          <div className="flex flex-wrap items-center mt-4 gap-4">
-            <input
-              value={form.name}
-              type="text"
-              placeholder="File Name"
-              required
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="flex-1 min-w-[200px] p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
-            />
-            <select
-              value={form.language}
-              required
-              onChange={(e) => setForm({ ...form, language: e.target.value })}
-              className="min-w-[150px] p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
-            >
-              <option value="" selected>
-                Select Language
-              </option>
-              <option value="javascript">JavaScript</option>
-              <option value="python">Python</option>
-              <option value="cpp">C++</option>
-            </select>
-            <button
-              disabled={loading}
-              className="relative flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-6 h-6 border-4 border-t-4 border-t-transparent border-white rounded-full animate-spin"></div>
-                </div>
-              )}
-              Create File
-            </button>
-          </div>
-        </form>
+    <div className="space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            {firstName ? `Welcome back, ${firstName}` : "Welcome back"}
+          </h1>
+          <p className="mt-1 text-slate-500">
+            Create a file or pick up where you left off.
+          </p>
+        </div>
+        <div className="relative sm:w-72">
+          <label htmlFor="file-search" className="sr-only">
+            Search files
+          </label>
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+          <input
+            id="file-search"
+            type="search"
+            placeholder="Search files"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="input pl-9"
+          />
+        </div>
       </div>
-      {myFiles && myFiles.length > 0 && (
-        <FileList title="My Files" list={myFiles} deleteBtn />
-      )}
-      {collabFiles && collabFiles.length > 0 && (
-        <FileList title="Collaborative Files" list={collabFiles} />
-      )}
+
+      <CreateFileForm />
+
+      <FileList
+        title="My files"
+        icon={FolderOpen}
+        files={myFiles}
+        total={myFilesState.myFiles.length}
+        loading={myFilesState.loading && !myFilesState.loaded}
+        searching={Boolean(search.trim())}
+        emptyTitle="No files yet"
+        emptyDescription="Create your first file above to start coding."
+        canDelete
+      />
+
+      <FileList
+        title="Shared with me"
+        icon={Users}
+        files={collabFiles}
+        total={collabState.collabFiles.length}
+        loading={collabState.loading && !collabState.loaded}
+        searching={Boolean(search.trim())}
+        emptyTitle="Nothing shared with you yet"
+        emptyDescription="Files appear here when you accept an invitation to collaborate."
+      />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BASE_URL } from "../constants/api";
 
 // The server runs on Render's free plan, which sleeps after ~15 minutes idle
@@ -85,43 +85,43 @@ const ServerWakeup = () => {
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm px-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm px-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="server-wakeup-title"
     >
       <div
-        className="w-full max-w-md rounded-xl bg-white p-8 text-center shadow-2xl"
+        className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-2xl"
         role="status"
         aria-live="polite"
       >
         <div
-          className="mx-auto mb-6 h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"
+          className="mx-auto mb-6 h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-indigo-600"
           aria-hidden="true"
         />
         <h2
           id="server-wakeup-title"
-          className="mb-3 text-xl font-bold text-gray-800"
+          className="mb-3 text-xl font-bold text-slate-800"
         >
           Waking up the server…
         </h2>
-        <p className="mb-4 text-gray-600">
+        <p className="mb-4 text-slate-600">
           This project runs on Render's free plan, which puts the server to
           sleep when no one is using it. Starting it again usually takes 30 to
           60 seconds. Thanks for waiting!
         </p>
-        <p className="text-sm text-gray-500">Waiting for {elapsed}s</p>
+        <p className="text-sm text-slate-500">Waiting for {elapsed}s</p>
 
         {elapsed >= SLOW_HINT_AFTER_S && (
-          <div className="mt-4 border-t border-gray-200 pt-4">
-            <p className="mb-3 text-sm text-gray-600">
+          <div className="mt-4 border-t border-slate-200 pt-4">
+            <p className="mb-3 text-sm text-slate-600">
               This is taking longer than usual. You can keep waiting or reload
               the page.
             </p>
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
             >
               Reload page
             </button>

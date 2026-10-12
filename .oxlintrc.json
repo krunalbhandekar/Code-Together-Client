@@ -1,0 +1,38 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "react",
+    "react-hooks",
+    "jsx-a11y",
+    "import"
+  ],
+  "env": {
+    "browser": true,
+    "es2024": true
+  },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-key": "error",
+    "jsx-a11y/alt-text": "error",
+    "jsx-a11y/anchor-is-valid": "warn",
+    "jsx-a11y/click-events-have-key-events": "warn",
+    "jsx-a11y/no-static-element-interactions": "warn",
+    "no-underscore-dangle": "off",
+    "import/no-unassigned-import": "off",
+    "react/set-state-in-effect": "off",
+    "react/incompatible-library": "off",
+    "react/exhaustive-effect-dependencies": "off",
+    "jsx-a11y/prefer-tag-over-role": "off",
+    "import/no-named-as-default-member": "off"
+  },
+  "ignorePatterns": [
+    "build/**",
+    "node_modules/**"
+  ]
+}

@@ -1,39 +1,42 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-import { FILE_URL } from "../../constants/api";
+import { request } from "../../lib/api";
 
 export const onLoadMyFiles = createAsyncThunk(
-  "myFiles/onLoadMyFiles",
-  async () => {
+  "myFiles/load",
+  async (_, { rejectWithValue }) => {
     try {
-      const res = await axios.get(FILE_URL);
-      return res.data;
+      const data = await request({ url: "/file" });
+      return data.files ?? [];
     } catch (err) {
-      return { status: "error", error: err?.message };
+      return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const onAddMyFile = createAsyncThunk(
-  "myFiles/onAddMyFile",
-  async ({ name, language = "javascript" }) => {
+  "myFiles/add",
+  async ({ name, language = "javascript" }, { rejectWithValue }) => {
     try {
-      const res = await axios.post(FILE_URL, { name, language });
-      return res.data;
+      const data = await request({
+        method: "post",
+        url: "/file",
+        data: { name, language },
+      });
+      return data.file;
     } catch (err) {
-      return { status: "error", error: err?.message };
+      return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const onDeleteMyFile = createAsyncThunk(
-  "myFiles/onDeleteMyFile",
-  async ({ id }) => {
+  "myFiles/delete",
+  async ({ id }, { rejectWithValue }) => {
     try {
-      const res = await axios.delete(`${FILE_URL}/${id}`);
-      return res.data;
+      await request({ method: "delete", url: `/file/${id}` });
+      return id;
     } catch (err) {
-      return { status: "error", error: err?.message };
+      return rejectWithValue(err.message);
     }
-  }
+  },
 );

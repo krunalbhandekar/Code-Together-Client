@@ -1,13 +1,17 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { onLoadCollabFiles } from "./action";
+import { loggedOut } from "../auth/slice";
+
+const initialState = {
+  collabFiles: [],
+  loading: false,
+  loaded: false,
+  error: null,
+};
 
 const collabFilesSlice = createSlice({
   name: "collabFiles",
-  initialState: {
-    collabFiles: [],
-    loading: false,
-    error: null,
-  },
+  initialState,
   extraReducers: (builder) => {
     builder
       .addCase(onLoadCollabFiles.pending, (state) => {
@@ -15,18 +19,15 @@ const collabFilesSlice = createSlice({
         state.error = null;
       })
       .addCase(onLoadCollabFiles.fulfilled, (state, action) => {
-        const result = action.payload;
-        if (result.status === "error") {
-          state.error = result.error;
-        } else {
-          state.collabFiles = result.collabFiles;
-        }
         state.loading = false;
+        state.loaded = true;
+        state.collabFiles = action.payload;
       })
       .addCase(onLoadCollabFiles.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload.message;
-      });
+        state.error = action.payload ?? action.error.message;
+      })
+      .addCase(loggedOut, () => initialState);
   },
 });
 

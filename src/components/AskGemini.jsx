@@ -1,228 +1,257 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Drawer, message } from "antd";
-import useScreen from "../customHook/useScreen";
-import { GEMINI_URL } from "../constants/api";
-import axios from "axios";
+import { useCallback, useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { toast } from "sonner";
+import { ArrowUp, Check, Copy, Loader2, Sparkles, Trash2 } from "lucide-react";
+import Drawer from "./ui/Drawer";
+import Button from "./ui/Button";
+import { request } from "../lib/api";
+import cn from "../lib/cn";
 
-const AskGemini = ({ open, close, fileId }) => {
-  const isSmallScreen = useScreen();
-  const containerRef = useRef();
-  const [loading, setLoading] = useState(false);
-  const [response, setResponse] = useState([]);
-  const [prompt, setPrompt] = useState("");
+const SUGGESTIONS = [
+  "How do I reverse a linked list?",
+  "Explain Big-O notation with examples",
+  "What's the difference between let, const and var?",
+];
 
-  const onLoad = async () => {
-    setLoading(true);
+const CodeBlock = ({ children }) => {
+  const ref = useRef(null);
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
     try {
-      const res = await axios.get(GEMINI_URL, {
-        headers: {
-          "X-API-Filters": JSON.stringify({ file: [fileId] }),
-        },
-      });
-      if (res.data.status === "success") {
-        setResponse(res.data.gemini);
-      } else {
-        message.error(res.data.error);
-      }
-    } catch (err) {
-      message.error(err?.message);
+      await navigator.clipboard.writeText(ref.current?.innerText ?? "");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error("Couldn't copy to the clipboard.");
     }
-    setLoading(false);
   };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await axios.post(GEMINI_URL, { prompt, file: fileId });
-      if (res.data.status === "success") {
-        onLoad();
-      } else {
-        message.error(res.data.error);
-      }
-    } catch (err) {
-      message.error(err?.message);
-    }
-    setLoading(false);
-    setPrompt("");
-  };
-
-  const handleResponse = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.delete(`${GEMINI_URL}/${fileId}`);
-      if (res.data.status === "error") {
-        message.error(res.data.error);
-      } else {
-        setResponse([]);
-      }
-    } catch (err) {
-      message.error(err?.message);
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    // Scroll to the last element whenever the response array changes
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    }
-  }, [response]);
-
-  useEffect(() => {
-    if (open) {
-      onLoad();
-    } else {
-      setResponse([]);
-    }
-  }, [open]);
 
   return (
-    <Drawer
-      title="Code Together AI"
-      extra={
-        response.length > 0 && (
-          <button
-            onClick={handleResponse}
-            className="text-sm px-4 py-1 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-opacity-75 transition ease-in-out duration-150"
-          >
-            Clear Response
-          </button>
-        )
-      }
-      loading={loading}
-      open={open}
-      placement="right"
-      closable={false}
-      width={isSmallScreen ? 300 : 500}
-      onClose={close}
-    >
-      <div className="flex flex-col h-full">
-        <div className="flex-1 overflow-auto space-y-2" ref={containerRef}>
-          {response?.map((res) => (
-            <div key={res._id}>
-              <div className="border p-2 rounded-lg bg-gray-500 text-white">
-                <p>{res.prompt}</p>
-              </div>
-              <GeminiUi text={res.response} />
-            </div>
-          ))}
-        </div>
-        <form
-          onSubmit={handleSubmit}
-          className="pt-4 sticky bottom-0 bg-white border-t border-gray-200 flex items-center space-x-2"
-        >
-          <textarea
-            type="text"
-            value={prompt}
-            required
-            onChange={(e) => setPrompt(e.target.value)}
-            className="flex-1 p-2 border rounded-lg shadow-sm"
-            placeholder="Enter your prompt"
-          />
-          <button
-            type="submit"
-            className="p-2 bg-indigo-500 text-white rounded-lg"
-          >
-            Submit
-          </button>
-        </form>
-      </div>
-    </Drawer>
+    <div className="group relative">
+      <pre
+        ref={ref}
+        className="overflow-x-auto rounded-lg bg-slate-900 p-4 pr-12 font-mono text-[13px] leading-relaxed text-slate-100"
+      >
+        {children}
+      </pre>
+      <button
+        type="button"
+        onClick={copy}
+        aria-label={copied ? "Copied" : "Copy code"}
+        className="absolute top-2 right-2 rounded-md bg-slate-800 p-1.5 text-slate-300 transition hover:bg-slate-700 hover:text-white"
+      >
+        {copied ? <Check className="size-4 text-emerald-400" /> : <Copy className="size-4" />}
+      </button>
+    </div>
   );
 };
 
-const GeminiUi = ({ text = "" }) => {
-  const copyToClipboard = (code) => {
-    navigator.clipboard.writeText(code);
-    alert("Code copied to clipboard!");
-  };
+const markdownComponents = {
+  pre: CodeBlock,
+  a: ({ children, ...props }) => (
+    <a {...props} target="_blank" rel="noreferrer noopener">
+      {children}
+    </a>
+  ),
+};
 
-  const parseInlineHeadings = (text) => {
-    const parts = text.split(/(\\.?\\)/); // Split by *...**
-    return parts?.map((part, index) => {
-      if (part.startsWith("*") && part.endsWith("*")) {
-        return (
-          <strong key={index} className="text-gray-800 font-semibold">
-            {part.replace(/\\/g, "")}
-          </strong>
-        );
-      }
-      return part; // Regular text
+const Answer = ({ text }) => (
+  <div className="prose-ai text-sm leading-relaxed text-slate-700">
+    <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+      {text}
+    </ReactMarkdown>
+  </div>
+);
+
+const UserBubble = ({ text }) => (
+  <div className="flex justify-end">
+    <p className="max-w-[85%] rounded-2xl rounded-br-md bg-indigo-600 px-4 py-2.5 text-sm whitespace-pre-wrap text-white">
+      {text}
+    </p>
+  </div>
+);
+
+const AiBubble = ({ children }) => (
+  <div className="flex gap-3">
+    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-600">
+      <Sparkles className="size-4" />
+    </span>
+    <div className="min-w-0 flex-1 pt-0.5">{children}</div>
+  </div>
+);
+
+const AskGemini = ({ open, close, fileId }) => {
+  const scrollRef = useRef(null);
+  const inputRef = useRef(null);
+  const [history, setHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [pendingPrompt, setPendingPrompt] = useState(null);
+  const [clearing, setClearing] = useState(false);
+  const [prompt, setPrompt] = useState("");
+
+  const loadHistory = useCallback(async () => {
+    const data = await request({
+      url: "/gemini",
+      headers: { "X-API-Filters": JSON.stringify({ file: [fileId] }) },
     });
+    setHistory(data.gemini ?? []);
+  }, [fileId]);
+
+  useEffect(() => {
+    if (!open) return;
+    setLoadingHistory(true);
+    loadHistory()
+      .catch((err) => toast.error(err.message))
+      .finally(() => setLoadingHistory(false));
+  }, [open, loadHistory]);
+
+  // Keep the newest message in view.
+  useEffect(() => {
+    const el = scrollRef.current?.closest(".overflow-y-auto");
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [history, pendingPrompt]);
+
+  const ask = async (text) => {
+    const question = text.trim();
+    if (!question || pendingPrompt) return;
+    setPendingPrompt(question);
+    setPrompt("");
+    try {
+      await request({ method: "post", url: "/gemini", data: { prompt: question, file: fileId } });
+      await loadHistory();
+    } catch (err) {
+      toast.error(err.message);
+      setPrompt(question);
+    } finally {
+      setPendingPrompt(null);
+      inputRef.current?.focus();
+    }
   };
 
-  // Function to parse the input text into structured parts
-  const parseContent = (input) => {
-    const lines = input.split("\n"); // Split by line breaks
-    const content = [];
-    let currentCode = null;
-
-    lines.forEach((line) => {
-      line = line.trim();
-
-      if (line.startsWith("* ")) {
-        // Bullet point with possible inline heading
-        content.push({
-          type: "bullet",
-          value: parseInlineHeadings(line.slice(2)),
-        });
-      } else if (line.startsWith("```")) {
-        // Code block start/end
-        if (currentCode) {
-          content.push({ type: "code", value: currentCode.trim() });
-          currentCode = null;
-        } else {
-          currentCode = "";
-        }
-      } else if (currentCode !== null) {
-        // Inside code block
-        currentCode += line + "\n";
-      } else if (line) {
-        // Plain text with possible inline heading
-        content.push({ type: "text", value: parseInlineHeadings(line) });
-      }
-    });
-
-    return content;
+  const clearHistory = async () => {
+    setClearing(true);
+    try {
+      await request({ method: "delete", url: `/gemini/${fileId}` });
+      setHistory([]);
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setClearing(false);
+    }
   };
 
-  const parsedContent = parseContent(text);
+  const isEmpty = history.length === 0 && !pendingPrompt;
 
   return (
-    <div className="p-6 space-y-4">
-      {parsedContent?.map((item, index) => {
-        if (item.type === "bullet") {
-          return (
-            <li key={index} className="text-gray-700 list-disc ml-6">
-              {item.value}
-            </li>
-          );
-        } else if (item.type === "code") {
-          return (
-            <div
-              key={index}
-              className="relative bg-gray-800 text-white p-4 rounded shadow-lg overflow-x-auto"
+    <Drawer
+      open={open}
+      onClose={close}
+      title="AI assistant"
+      icon={<Sparkles className="size-5 text-violet-600" />}
+      actions={
+        history.length > 0 && (
+          <Button variant="ghost" size="sm" loading={clearing} onClick={clearHistory}>
+            {!clearing && <Trash2 className="size-4" />}
+            Clear
+          </Button>
+        )
+      }
+      footer={
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            ask(prompt);
+          }}
+          className="p-4"
+        >
+          <div className="flex items-end gap-2 rounded-xl border border-slate-300 bg-white p-2 shadow-xs focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/15">
+            <label htmlFor="ai-prompt" className="sr-only">
+              Ask a question
+            </label>
+            <textarea
+              id="ai-prompt"
+              ref={inputRef}
+              rows={2}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  ask(prompt);
+                }
+              }}
+              placeholder="Ask anything about code…"
+              className="max-h-40 min-h-10 flex-1 resize-none bg-transparent px-2 py-1.5 text-sm outline-none placeholder:text-slate-400"
+            />
+            <Button
+              type="submit"
+              size="icon-sm"
+              aria-label="Send"
+              disabled={!prompt.trim() || Boolean(pendingPrompt)}
             >
-              <button
-                onClick={() => copyToClipboard(item.value)}
-                className="absolute top-2 right-2 p-2 bg-blue-500 text-white rounded hover:bg-blue-400 transition"
-              >
-                Copy code
-              </button>
-              <pre className="whitespace-pre-wrap">{item.value}</pre>
-            </div>
-          );
-        } else if (item.type === "text") {
-          return (
-            <p key={index} className="text-gray-700">
-              {item.value}
+              <ArrowUp className="size-4" />
+            </Button>
+          </div>
+          <p className="mt-2 text-center text-xs text-slate-400">
+            Enter to send · Shift + Enter for a new line
+          </p>
+        </form>
+      }
+    >
+      <div ref={scrollRef} className="space-y-6 p-5">
+        {loadingHistory && history.length === 0 ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="size-6 animate-spin text-violet-600" aria-label="Loading conversation" />
+          </div>
+        ) : isEmpty ? (
+          <div className="py-8 text-center">
+            <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-violet-100 text-violet-600">
+              <Sparkles className="size-6" />
+            </span>
+            <p className="mt-4 font-semibold text-slate-900">How can I help?</p>
+            <p className="mt-1 text-sm text-slate-500">
+              Ask for explanations, examples or help debugging.
             </p>
-          );
-        }
-        return null;
-      })}
-    </div>
+            <div className="mt-6 flex flex-col gap-2">
+              {SUGGESTIONS.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onClick={() => ask(suggestion)}
+                  className="rounded-lg border border-slate-200 px-4 py-2.5 text-left text-sm text-slate-700 transition hover:border-violet-300 hover:bg-violet-50"
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <>
+            {history.map((item) => (
+              <div key={item._id} className="space-y-4">
+                <UserBubble text={item.prompt} />
+                <AiBubble>
+                  <Answer text={item.response} />
+                </AiBubble>
+              </div>
+            ))}
+            {pendingPrompt && (
+              <div className="space-y-4">
+                <UserBubble text={pendingPrompt} />
+                <AiBubble>
+                  <p className={cn("flex items-center gap-2 text-sm text-slate-500")}>
+                    <Loader2 className="size-4 animate-spin" />
+                    Thinking…
+                  </p>
+                </AiBubble>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </Drawer>
   );
 };
 
